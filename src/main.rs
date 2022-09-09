@@ -1,14 +1,31 @@
-use log::{debug, error, info, log_enabled, Level};
-use std::io::Read;
+mod source;
 
-fn main() {
+use anyhow::Result;
+use log::info;
+use std::path::PathBuf;
+use structopt::StructOpt;
+
+use source::SourceFile;
+
+#[derive(StructOpt, Debug)]
+#[structopt(
+    name = env!("CARGO_PKG_NAME"),
+    author = env!("CARGO_PKG_AUTHORS"),
+    about = env!("CARGO_PKG_DESCRIPTION"),
+)]
+struct Opt {
+    #[structopt(parse(from_os_str), help = "The source code file")]
+    source: PathBuf,
+}
+
+fn main() -> Result<()> {
     // Initialize the logger
     env_logger::init();
+    // Parse the command line arguments
+    let opt = Opt::from_args();
     // Read dsl file
     info!("Reading dsl file");
-    let mut file = std::fs::File::open("dsl.txt").unwrap();
-    let mut default_code = String::new();
-    file.read_to_string(&mut default_code).unwrap();
-    info!("Read dsl file successfully");
-    info!("Default code: {}", default_code);
+    let source = SourceFile::open(opt.source)?;
+    info!("Source file: {}", source.src);
+    Ok(())
 }
