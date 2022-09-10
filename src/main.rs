@@ -26,6 +26,7 @@ fn main() -> Result<()> {
     // Read dsl file
     info!("Reading dsl file");
     let source = SourceFile::open(opt.source)?;
-    info!("Source file: {}", source.src);
+    info!("Source file: {}", source.src.as_str());
+    info!("Lines: {:?}", source.lines);
     Ok(())
 }

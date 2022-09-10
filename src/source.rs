@@ -1,5 +1,5 @@
 use anyhow::Result;
-use log::{debug, error, info, log_enabled, Level};
+use log::info;
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
@@ -11,7 +11,7 @@ pub struct SourceFile {
     /// The complete source code of the file
     pub src: Rc<String>,
     /// Locations of line beginnings
-    pub lines: Rc<Vec<usize>>,
+    pub lines: Rc<Vec<String>>,
 }
 
 impl SourceFile {
@@ -29,7 +29,6 @@ impl SourceFile {
             buf.push_str("\n");
         }
 
-        info!("Count the number of lines");
         let lines = Self::analyze_lines(buf.as_str());
         Ok(SourceFile {
             path: path,
@@ -38,16 +37,38 @@ impl SourceFile {
         })
     }
 
-    /// Find out all line breaks.
-    pub fn analyze_lines(src: &str) -> Vec<usize> {
-        let mut lines = vec![0];
-        lines.extend(src.chars().enumerate().filter_map(|(i, c)| {
-            if c == '\n' {
-                Some(i + 1)
-            } else {
-                None
+    /// Split lines and Remove unused things.
+    pub fn analyze_lines(src: &str) -> Vec<String> {
+        let mut lines = src
+            .lines()
+            .map(|line| line.to_string())
+            .collect::<Vec<String>>();
+        for line in lines.iter_mut() {
+            // Remove comments
+            if let Some(pos) = line.find("#") {
+                line.truncate(pos);
             }
-        }));
-        lines
+            // Remove spaces
+            *line = line.trim().to_string();
+        }
+        // Remove empty lines
+        let new_lines = lines
+            .iter()
+            .filter(|line| !line.is_empty())
+            .map(|line| line.to_string())
+            .collect::<Vec<String>>();
+        return new_lines;
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_analyze_lines() {
+        let src = "  # comment\n\n\n   aaa";
+        let lines = SourceFile::analyze_lines(src);
+        assert_eq!(lines, vec!["aaa".to_string()]);
     }
 }
