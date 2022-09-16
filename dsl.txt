@@ -91,7 +91,7 @@ Step exitProc
     Exit
 Step chargeProc
     Speak "请问您需要充值多少元？您当前的余额为" + $balance + "元。" #comment
-    Culculate $balance, chargeSuccessProc, $balance + INPUT # comment
+    Calculate $balance, chargeSuccessProc, $balance + INPUT # comment
 Step chargeSuccessProc
     Speak "充值成功，您当前余额为" + $balance + "元，请问还有什么可以帮到您？"
     Listen 5
@@ -122,8 +122,8 @@ Step trafficProc
     Default defaultProc
 Step buyProc
     Speak "请问您需要购买多少流量包？价格为5元/GB，请输入价格。"
-    Culculate $balance, buySuccessProc, $balance - INPUT
-    Culculate $traffic, buySuccessProc, $traffic + INPUT / 5
+    Calculate $balance, buySuccessProc, $balance - INPUT
+    Calculate $traffic, buySuccessProc, $traffic + INPUT / 5
 Step buySuccessProc
     Speak "流量包购买成功，余额为" + $balance + "元，剩余流量为" + $traffic + "GB，请问还有什么可以帮到您？"
     Listen 5
