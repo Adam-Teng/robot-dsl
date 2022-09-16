@@ -1,7 +1,5 @@
-use crate::{
-    error::error,
-    token::{Token, TokenType, KEYWORDS},
-};
+use crate::error::error;
+use crate::token::{Token, TokenType, KEYWORDS};
 
 pub struct Scanner {
     source: String,
