@@ -1,32 +1,44 @@
-mod source;
+use std::io::{self, BufRead};
+use std::process::exit;
+use std::{env, fs};
 
-use anyhow::Result;
-use log::info;
-use std::path::PathBuf;
-use structopt::StructOpt;
+use robot_dsl::scanner::Scanner;
 
-use source::SourceFile;
-
-#[derive(StructOpt, Debug)]
-#[structopt(
-    name = env!("CARGO_PKG_NAME"),
-    author = env!("CARGO_PKG_AUTHORS"),
-    about = env!("CARGO_PKG_DESCRIPTION"),
-)]
-struct Opt {
-    #[structopt(parse(from_os_str), help = "The source code file")]
-    source: PathBuf,
+fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
+    let args: Vec<String> = env::args().collect();
+    match args.as_slice() {
+        [_, file] => run_file(file)?,
+        [_] => run_prompt()?,
+        _ => {
+            eprintln!("Usage: lox-rs [script]");
+            exit(64)
+        }
+    }
+    Ok(())
 }
 
-fn main() -> Result<()> {
-    // Initialize the logger
-    env_logger::init();
-    // Parse the command line arguments
-    let opt = Opt::from_args();
-    // Read dsl file
-    info!("Reading dsl file");
-    let source = SourceFile::open(opt.source)?;
-    info!("Source file: {}", source.src.as_str());
-    info!("Lines: {:?}", source.lines);
+fn run_file(path: &str) -> io::Result<()> {
+    let source = fs::read_to_string(path)?;
+    run(source)
+}
+
+fn run_prompt() -> io::Result<()> {
+    let stdin = io::stdin();
+    println!(" ---input--- ");
+    for line in stdin.lock().lines() {
+        println!(" ---output--- ");
+        run(line?); // Ignore error.
+        println!(" ---input--- ");
+    }
+    Ok(())
+}
+
+fn run(source: String) -> io::Result<()> {
+    let mut scanner = Scanner::new(source);
+    let tokens = scanner.scan_tokens();
+
+    for token in tokens {
+        println!("{}", token);
+    }
     Ok(())
 }
