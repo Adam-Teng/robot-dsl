@@ -37,7 +37,7 @@ include!(concat!(env!("OUT_DIR"), "/keywords.rs"));
 
 pub struct Token {
     pub tpe: TokenType,
-    lexeme: String,
+    pub lexeme: String,
     line: i32,
 }
 
