@@ -50,6 +50,16 @@ impl Scanner {
                     self.add_token(TokenType::Equal);
                 }
             }
+            '/' => {
+                if self.match_char('/') {
+                    while self.peek() != '\n' && !self.is_at_end() {
+                        self.advance();
+                    }
+                } else if self.match_char('*') {
+                    self.block_comment();
+                }
+            }
+            '*' => {}
             ' ' | '\r' | '\t' => (), // Ignore whitespace
             '\n' => self.line += 1,
             '"' => self.string(),
@@ -127,6 +137,28 @@ impl Scanner {
             .expect("Unexpected end.")
             .to_string();
         self.add_token(TokenType::String { literal });
+    }
+
+    fn block_comment(&mut self) {
+        while !self.is_at_end() {
+            let c = self.advance();
+            match c {
+                '/' => {
+                    if self.match_char('*') {
+                        self.block_comment();
+                    }
+                }
+                '*' => {
+                    if self.match_char('/') {
+                        return;
+                    }
+                }
+                '\n' => {
+                    self.line += 1;
+                }
+                _ => { break; },
+            }
+        }
     }
 
     fn match_char(&mut self, expected: char) -> bool {
@@ -234,6 +266,17 @@ mod test {
         assert_eq!(tokens.len(), 3);
         assert_eq!(tokens[0].tpe, TokenType::Identifier);
         assert_eq!(tokens[1].tpe, TokenType::Identifier);
+        assert_eq!(tokens[2].tpe, TokenType::EOF);
+    }
+
+    #[test]
+    fn test_scan_tokens_comments() {
+        let source = "/* hello 
+        /* world 
+        */ */".to_string();
+        let mut scanner = Scanner::new(source);
+        let tokens = scanner.scan_tokens();
+        assert_eq!(tokens.len(), 3);
         assert_eq!(tokens[2].tpe, TokenType::EOF);
     }
 
