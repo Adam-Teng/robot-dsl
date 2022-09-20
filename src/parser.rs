@@ -71,24 +71,15 @@ impl<'t> Parser<'t> {
     }
 
     fn expression(&mut self) -> Result<Expr, Error> {
-        if self.tokens[1].tpe == TokenType::BangEqual || self.tokens[1].tpe == TokenType::EqualEqual
-        {
-            self.equality()
-        } else if self.tokens[1].tpe == TokenType::Plus || self.tokens[1].tpe == TokenType::Minus {
-            self.addition()
-        } else if self.tokens[0].tpe == TokenType::Bang {
-            self.unary()
-        } else {
-            self.primary()
-        }
+        self.equality()
     }
 
     fn equality(&mut self) -> Result<Expr, Error> {
-        let mut expr = self.primary()?;
+        let mut expr = self.addition()?;
 
         while matches!(self, TokenType::BangEqual, TokenType::EqualEqual) {
             let operator = self.previous().clone();
-            let right = self.primary()?;
+            let right = self.addition()?;
             expr = Expr::Binary {
                 left: Box::new(expr),
                 operator,
@@ -100,11 +91,11 @@ impl<'t> Parser<'t> {
     }
 
     fn addition(&mut self) -> Result<Expr, Error> {
-        let mut expr = self.primary()?;
+        let mut expr = self.unary()?;
 
         while matches!(self, TokenType::Plus, TokenType::Minus) {
             let operator = self.previous().clone();
-            let right = self.primary()?;
+            let right = self.unary()?;
             expr = Expr::Binary {
                 left: Box::new(expr),
                 operator,

@@ -89,3 +89,16 @@ fn test_parser_unary() {
 
     assert_eq!(printer.print(expression).unwrap(), "(! (! 123))");
 }
+
+#[test]
+fn test_parser_recursive() {
+    let mut scanner = Scanner::new("123 + !45 + 67".to_string());
+    let tokens = scanner.scan_tokens();
+
+    let mut parser = Parser::new(tokens);
+    // println!("{:?}", parser.tokens[1]);
+    let expression = parser.calculate().expect("Failed to calculate");
+    let mut printer = AstPrinter;
+
+    assert_eq!(printer.print(expression).unwrap(), "(+ (+ 123 (! 45)) 67)");
+}

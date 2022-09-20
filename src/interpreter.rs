@@ -21,7 +21,7 @@ impl Object {
 pub struct Interpreter;
 
 impl Interpreter {
-    pub fn interpret(&mut self, statements: Vec<Stmt>) -> Result<(), Error> {
+    pub fn interpret(&mut self, statements: &Vec<Stmt>) -> Result<(), Error> {
         for statement in statements {
             self.execute(&statement)?;
         }
