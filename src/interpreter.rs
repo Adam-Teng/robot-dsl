@@ -1,5 +1,5 @@
 use crate::error::Error;
-use crate::syntax::{Expr, LiteralValue, Visitor};
+use crate::syntax::{Expr, LiteralValue, Stmt, expr, stmt};
 use crate::token::{Token, TokenType};
 enum Object {
     Boolean(bool),
@@ -21,12 +21,24 @@ impl Object {
 pub struct Interpreter;
 
 impl Interpreter {
-    pub fn interpret(&self, expression: &Expr) -> Result<String, Error> {
+    pub fn interpret(&mut self, statements: Vec<Stmt>) -> Result<(), Error> {
+        for statement in statements {
+            self.execute(&statement)?;
+        }
+
+        Ok(())
+    }
+
+    pub fn interpret_cal(&mut self, expression: &Expr) -> Result<String, Error> {
         self.evaluate(expression).map(|value| self.stringify(value))
     }
 
-    fn evaluate(&self, expression: &Expr) -> Result<Object, Error> {
+    fn evaluate(&mut self, expression: &Expr) -> Result<Object, Error> {
         expression.accept(self)
+    }
+
+    fn execute(&mut self, statement: &Stmt) -> Result<(), Error> {
+        statement.accept(self)
     }
 
     fn is_truthy(&self, object: &Object) -> bool {
@@ -56,7 +68,7 @@ impl Interpreter {
     }
 }
 
-impl Visitor<Object> for Interpreter {
+impl expr::Visitor<Object> for Interpreter {
     fn visit_literal_expr(&self, value: &LiteralValue) -> Result<Object, Error> {
         match value {
             LiteralValue::Boolean(b) => Ok(Object::Boolean(b.clone())),
@@ -65,7 +77,7 @@ impl Visitor<Object> for Interpreter {
         }
     }
 
-    fn visit_binary_expr(&self, left: &Expr, operator: &Token, right: &Expr) -> Result<Object, Error> {
+    fn visit_binary_expr(&mut self, left: &Expr, operator: &Token, right: &Expr) -> Result<Object, Error> {
         let l = self.evaluate(left)?;
         let r = self.evaluate(right)?;
 
@@ -85,7 +97,7 @@ impl Visitor<Object> for Interpreter {
         }
     }
 
-    fn visit_unary_expr(&self, operator: &Token, right: &Expr) -> Result<Object, Error> {
+    fn visit_unary_expr(&mut self, operator: &Token, right: &Expr) -> Result<Object, Error> {
         let right = self.evaluate(right)?;
 
         match &operator.tpe {
@@ -94,4 +106,17 @@ impl Visitor<Object> for Interpreter {
         }
     }
 
+}
+
+impl stmt::Visitor<()> for Interpreter {
+    fn visit_expression_stmt(&mut self, expression: &Expr) -> Result<(), Error> {
+        self.evaluate(expression)?;
+        Ok(())
+    }
+
+    fn visit_speak_stmt(&mut self, expression: &Expr) -> Result<(), Error> {
+        let value = self.evaluate(expression)?;
+        println!("{}", self.stringify(value));
+        Ok(())
+    }
 }

@@ -1,5 +1,5 @@
 use crate::error::{parser_error, Error};
-use crate::syntax::{Expr, LiteralValue};
+use crate::syntax::{Expr, LiteralValue, Stmt};
 use crate::token::{Token, TokenType};
 
 pub struct Parser<'t> {
@@ -25,8 +25,49 @@ impl<'t> Parser<'t> {
         Parser { tokens, current: 0 }
     }
 
-    pub fn parse(&mut self) -> Option<Expr> {
+    // for test expression calculating
+    pub fn calculate(&mut self) -> Option<Expr> {
         self.expression().ok()
+    }
+
+    pub fn parse(&mut self) -> Result<Vec<Stmt>, Error> {
+        let mut statements: Vec<Stmt> = Vec::new();
+        while !self.is_at_end() {
+            statements.push(self.declaration()?);
+        }
+        Ok(statements)
+    }
+
+    fn declaration(&mut self) -> Result<Stmt, Error> {
+        let statement = self.statement();
+
+        match statement {
+            Err(Error::Parse) => {
+                self.synchronize();
+                Ok(Stmt::Null)
+            }
+            other => other,
+        }
+    }
+
+    fn statement(&mut self) -> Result<Stmt, Error> {
+        if matches!(self, TokenType::Speak) {
+            self.speak_statement()
+        } else {
+            self.expression_statement()
+        }
+    }
+
+    fn speak_statement(&mut self) -> Result<Stmt, Error> {
+        let value = self.expression()?;
+        self.consume(TokenType::SemiColon, "Expect ';' after value.")?;
+        Ok(Stmt::Speak{ expression: value })
+    }
+
+    fn expression_statement(&mut self) -> Result<Stmt, Error> {
+        let expr = self.expression()?;
+        self.consume(TokenType::SemiColon, "Expect ';' after expression.")?;
+        Ok(Stmt::Expression{ expression: expr })
     }
 
     fn expression(&mut self) -> Result<Expr, Error> {
@@ -145,4 +186,34 @@ impl<'t> Parser<'t> {
             .get(self.current)
             .expect("Peek into end of token stream.")
     }
+
+    fn consume(&mut self, token_type: TokenType, message: &str) -> Result<Token, Error> {
+        if self.check(token_type) {
+            Ok(self.advance().clone())
+        } else {
+            Err(self.error(self.peek(), message))
+        }
+    }
+
+    fn synchronize(&mut self) {
+        self.advance();
+
+        while !self.is_at_end() {
+            if self.previous().tpe == TokenType::SemiColon {
+                return;
+            }
+
+            match self.peek().tpe {
+                TokenType::Var
+                | TokenType::Branch
+                | TokenType::Exit
+                | TokenType::Input
+                | TokenType::Listen
+                | TokenType::Speak
+                | TokenType::Step => return,
+                _ => self.advance(),
+            };
+        }
+    }
+
 }

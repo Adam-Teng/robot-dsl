@@ -40,8 +40,8 @@ impl Dsl {
         let mut scanner = Scanner::new(source);
         let tokens = scanner.scan_tokens();
         let mut parser = Parser::new(tokens);
-        if let Some(expression) = parser.parse() {
-            println!("{}", self.interpreter.interpret(&expression)?);
+        if let Some(expression) = parser.calculate() {
+            println!("{}", self.interpreter.interpret_cal(&expression)?);
         }
 
         Ok(())

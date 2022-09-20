@@ -2,18 +2,18 @@ use robot_dsl::{
     error::Error,
     parser::Parser,
     scanner::Scanner,
-    syntax::{Expr, LiteralValue, Visitor},
+    syntax::{Expr, LiteralValue, expr},
     token::{Token, TokenType},
 };
 
 pub struct AstPrinter;
 
 impl AstPrinter {
-    pub fn print(&self, expr: Expr) -> Result<String, Error> {
+    pub fn print(&mut self, expr: Expr) -> Result<String, Error> {
         expr.accept(self)
     }
 
-    fn parenthesize(&self, name: String, exprs: Vec<&Expr>) -> Result<String, Error> {
+    fn parenthesize(&mut self, name: String, exprs: Vec<&Expr>) -> Result<String, Error> {
         let mut r = String::new();
         r.push_str("(");
         r.push_str(&name);
@@ -26,9 +26,9 @@ impl AstPrinter {
     }
 }
 
-impl Visitor<String> for AstPrinter {
+impl expr::Visitor<String> for AstPrinter {
     fn visit_binary_expr(
-        &self,
+        &mut self,
         left: &Expr,
         operator: &Token,
         right: &Expr,
@@ -40,7 +40,7 @@ impl Visitor<String> for AstPrinter {
         Ok(value.to_string())
     }
 
-    fn visit_unary_expr(&self, operator: &Token, right: &Expr) -> Result<String, Error> {
+    fn visit_unary_expr(&mut self, operator: &Token, right: &Expr) -> Result<String, Error> {
         self.parenthesize(operator.lexeme.clone(), vec![right])
     }
 }
@@ -59,7 +59,7 @@ fn test_printer() {
             value: LiteralValue::Number(45.67f64),
         }),
     };
-    let printer = AstPrinter;
+    let mut printer = AstPrinter;
 
     assert_eq!(printer.print(expression).unwrap(), "(+ (! 123) 45.67)");
 }
@@ -71,8 +71,8 @@ fn test_parser_binary() {
 
     let mut parser = Parser::new(tokens);
     // println!("{:?}", parser.tokens[1]);
-    let expression = parser.parse().expect("Failed to parse");
-    let printer = AstPrinter;
+    let expression = parser.calculate().expect("Failed to calculate");
+    let mut printer = AstPrinter;
 
     assert_eq!(printer.print(expression).unwrap(), "(+ 123 45)");
 }
@@ -84,8 +84,8 @@ fn test_parser_unary() {
 
     let mut parser = Parser::new(tokens);
     // println!("{:?}", parser.tokens[0]);
-    let expression = parser.parse().expect("Failed to parse");
-    let printer = AstPrinter;
+    let expression = parser.calculate().expect("Failed to calculate");
+    let mut printer = AstPrinter;
 
     assert_eq!(printer.print(expression).unwrap(), "(! (! 123))");
 }

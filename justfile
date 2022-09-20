@@ -2,7 +2,7 @@ raw:
     cargo build
 
 run:
-    cargo run dsl.txt
+    cargo run
 
-log:
-    RUST_LOG=debug cargo run dsl.txt
+runfile:
+    cargo run dsl.txt
