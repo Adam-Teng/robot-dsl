@@ -36,6 +36,7 @@ impl Scanner {
         match c {
             '-' => self.add_token(TokenType::Minus),
             '+' => self.add_token(TokenType::Plus),
+            ';' => self.add_token(TokenType::SemiColon),
             '!' => {
                 if self.match_char('=') {
                     self.add_token(TokenType::BangEqual);
