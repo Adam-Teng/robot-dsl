@@ -1,44 +1,68 @@
-use std::io::{self, BufRead};
+use std::io::{self, BufRead, Write};
 use std::process::exit;
 use std::{env, fs};
 
-use robot_dsl::scanner::Scanner;
+use robot_dsl::{
+    error::Error,
+    parser::Parser,
+    scanner::Scanner,
+    interpreter::Interpreter,
+};
+
+struct Dsl {
+    interpreter: Interpreter,
+}
+
+impl Dsl {
+    fn new() -> Self {
+        Dsl {
+            interpreter: Interpreter,
+        }
+    }
+
+    fn run_file(&mut self, path: &str) -> Result<(), Error> {
+        let source = fs::read_to_string(path)?;
+        self.run(source)
+    }
+
+    fn run_prompt(&mut self) -> Result<(), Error> {
+        let stdin = io::stdin();
+        loop {
+            print!("> ");
+            io::stdout().flush()?;
+            let mut line = String::new();
+            stdin.lock().read_line(&mut line)?;
+            self.run(line)?;
+        }
+    }
+
+    fn run(&mut self, source: String) -> Result<(), Error> {
+        let mut scanner = Scanner::new(source);
+        let tokens = scanner.scan_tokens();
+        let mut parser = Parser::new(tokens);
+        if let Some(expression) = parser.parse() {
+            println!("{}", self.interpreter.interpret(&expression)?);
+        }
+
+        Ok(())
+    }
+}
 
 fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
     let args: Vec<String> = env::args().collect();
+    let mut dsl = Dsl::new();
     match args.as_slice() {
-        [_, file] => run_file(file)?,
-        [_] => run_prompt()?,
+        [_, file] => match dsl.run_file(file) {
+            Ok(_) => (),
+            Err(Error::Runtime { .. }) => exit(70),
+            Err(Error::Parse) => exit(65),
+            Err(Error::Io(_)) => unimplemented!(),
+        },
+        [_] => dsl.run_prompt()?,
         _ => {
-            eprintln!("Usage: lox-rs [script]");
+            eprintln!("Usage: robot-dsl [script]");
             exit(64)
         }
-    }
-    Ok(())
-}
-
-fn run_file(path: &str) -> io::Result<()> {
-    let source = fs::read_to_string(path)?;
-    run(source)
-}
-
-fn run_prompt() -> io::Result<()> {
-    let stdin = io::stdin();
-    println!(" ---input--- ");
-    for line in stdin.lock().lines() {
-        println!(" ---output--- ");
-        run(line?); // Ignore error.
-        println!(" ---input--- ");
-    }
-    Ok(())
-}
-
-fn run(source: String) -> io::Result<()> {
-    let mut scanner = Scanner::new(source);
-    let tokens = scanner.scan_tokens();
-
-    for token in tokens {
-        println!("{}", token);
     }
     Ok(())
 }
