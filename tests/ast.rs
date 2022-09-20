@@ -2,7 +2,7 @@ use robot_dsl::{
     error::Error,
     parser::Parser,
     scanner::Scanner,
-    syntax::{Expr, LiteralValue, expr},
+    syntax::{expr, Expr, LiteralValue},
     token::{Token, TokenType},
 };
 
@@ -101,4 +101,40 @@ fn test_parser_recursive() {
     let mut printer = AstPrinter;
 
     assert_eq!(printer.print(expression).unwrap(), "(+ (+ 123 (! 45)) 67)");
+}
+
+#[test]
+fn test_parser_equal() {
+    let mut scanner = Scanner::new("123 == 45".to_string());
+    let tokens = scanner.scan_tokens();
+
+    let mut parser = Parser::new(tokens);
+    let expression = parser.calculate().expect("Failed to calculate");
+    let mut printer = AstPrinter;
+
+    assert_eq!(printer.print(expression).unwrap(), "(== 123 45)");
+}
+
+#[test]
+fn test_parser_not_equal() {
+    let mut scanner = Scanner::new("123 != 45".to_string());
+    let tokens = scanner.scan_tokens();
+
+    let mut parser = Parser::new(tokens);
+    let expression = parser.calculate().expect("Failed to calculate");
+    let mut printer = AstPrinter;
+
+    assert_eq!(printer.print(expression).unwrap(), "(!= 123 45)");
+}
+
+#[test]
+fn test_parser_together() {
+    let mut scanner = Scanner::new("123 + 45 == 67".to_string());
+    let tokens = scanner.scan_tokens();
+
+    let mut parser = Parser::new(tokens);
+    let expression = parser.calculate().expect("Failed to calculate");
+    let mut printer = AstPrinter;
+
+    assert_eq!(printer.print(expression).unwrap(), "(== (+ 123 45) 67)");
 }

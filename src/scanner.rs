@@ -157,7 +157,9 @@ impl Scanner {
                 '\n' => {
                     self.line += 1;
                 }
-                _ => { break; },
+                _ => {
+                    break;
+                }
             }
         }
     }
@@ -274,7 +276,8 @@ mod test {
     fn test_scan_tokens_comments() {
         let source = "/* hello 
         /* world 
-        */ */".to_string();
+        */ */"
+            .to_string();
         let mut scanner = Scanner::new(source);
         let tokens = scanner.scan_tokens();
         assert_eq!(tokens.len(), 3);

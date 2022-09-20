@@ -61,16 +61,16 @@ impl<'t> Parser<'t> {
     fn speak_statement(&mut self) -> Result<Stmt, Error> {
         let value = self.expression()?;
         self.consume(TokenType::SemiColon, "Expect ';' after value.")?;
-        Ok(Stmt::Speak{ expression: value })
+        Ok(Stmt::Speak { expression: value })
     }
 
     fn expression_statement(&mut self) -> Result<Stmt, Error> {
         let expr = self.expression()?;
         self.consume(TokenType::SemiColon, "Expect ';' after expression.")?;
-        Ok(Stmt::Expression{ expression: expr })
+        Ok(Stmt::Expression { expression: expr })
     }
 
-    fn expression(&mut self) -> Result<Expr, Error> {
+    pub fn expression(&mut self) -> Result<Expr, Error> {
         self.equality()
     }
 
@@ -206,5 +206,4 @@ impl<'t> Parser<'t> {
             };
         }
     }
-
 }

@@ -2,12 +2,7 @@ use std::io::{self, BufRead, Write};
 use std::process::exit;
 use std::{env, fs};
 
-use robot_dsl::{
-    error::Error,
-    parser::Parser,
-    scanner::Scanner,
-    interpreter::Interpreter,
-};
+use robot_dsl::{error::Error, interpreter::Interpreter, parser::Parser, scanner::Scanner};
 
 struct Dsl {
     interpreter: Interpreter,

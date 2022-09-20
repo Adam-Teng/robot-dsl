@@ -1,5 +1,5 @@
 use crate::error::Error;
-use crate::syntax::{Expr, LiteralValue, Stmt, expr, stmt};
+use crate::syntax::{expr, stmt, Expr, LiteralValue, Stmt};
 use crate::token::{Token, TokenType};
 enum Object {
     Boolean(bool),
@@ -43,8 +43,8 @@ impl Interpreter {
 
     fn is_truthy(&self, object: &Object) -> bool {
         match object {
-            Object::Boolean(value) => *value,
-            _ => false,
+            Object::Boolean(value) => value.clone(),
+            _ => true,
         }
     }
 
@@ -77,20 +77,31 @@ impl expr::Visitor<Object> for Interpreter {
         }
     }
 
-    fn visit_binary_expr(&mut self, left: &Expr, operator: &Token, right: &Expr) -> Result<Object, Error> {
+    fn visit_binary_expr(
+        &mut self,
+        left: &Expr,
+        operator: &Token,
+        right: &Expr,
+    ) -> Result<Object, Error> {
         let l = self.evaluate(left)?;
         let r = self.evaluate(right)?;
 
         match &operator.tpe {
             TokenType::Minus => match (l, r) {
-                (Object::Number(left_number), Object::Number(right_number)) => Ok(Object::Number(left_number - right_number)),
+                (Object::Number(left_number), Object::Number(right_number)) => {
+                    Ok(Object::Number(left_number - right_number))
+                }
                 _ => self.number_operand_error(operator),
-            }
+            },
             TokenType::Plus => match (l, r) {
-                (Object::Number(left_number), Object::Number(right_number)) => Ok(Object::Number(left_number + right_number)),
-                (Object::String(left_string), Object::String(right_string)) => Ok(Object::String(format!("{}{}", left_string, right_string))),
+                (Object::Number(left_number), Object::Number(right_number)) => {
+                    Ok(Object::Number(left_number + right_number))
+                }
+                (Object::String(left_string), Object::String(right_string)) => {
+                    Ok(Object::String(format!("{}{}", left_string, right_string)))
+                }
                 _ => self.number_operand_error(operator),
-            }
+            },
             TokenType::BangEqual => Ok(Object::Boolean(!self.is_equal(&l, &r))),
             TokenType::EqualEqual => Ok(Object::Boolean(self.is_equal(&l, &r))),
             _ => unreachable!(),
@@ -105,7 +116,6 @@ impl expr::Visitor<Object> for Interpreter {
             _ => unreachable!(),
         }
     }
-
 }
 
 impl stmt::Visitor<()> for Interpreter {
