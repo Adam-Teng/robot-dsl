@@ -1,0 +1,27 @@
+var bill = 0;
+var name = "adam";
+
+step Billing();
+  speak "你的余额为"+bill;
+
+step Charging();
+  speak "请输入你的充值金额";
+  var x;
+  input(x);
+  bill = bill + x;
+
+step Complaining();
+  speak "请输入你的建议";
+  var str;
+  input str;
+
+speak "你好，"+name+"有什么需要的吗";
+var str;
+speak "请输入 余额 来查看余额，输入 充值 来向卡内充值，输入 投诉 来进行投诉，输入 退出 以结束对话”;
+input(str);
+branch str=="余额" Billing();
+branch str=="充值" Charging();
+branch str=="投诉" Complaining();
+branch str=="退出" exit;
+branch wait 60 speak "未操作“;exit;
+

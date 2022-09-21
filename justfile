@@ -5,4 +5,4 @@ run:
     cargo run
 
 runfile:
-    cargo run dsl.txt
+    cargo run example/dsl.txt
