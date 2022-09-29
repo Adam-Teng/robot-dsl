@@ -34,6 +34,10 @@ impl Scanner {
     fn scan_token(&mut self) {
         let c = self.advance();
         match c {
+            '(' => self.add_token(TokenType::LeftParen),
+            ')' => self.add_token(TokenType::RightParen),
+            '{' => self.add_token(TokenType::LeftBrace),
+            '}' => self.add_token(TokenType::RightBrace),
             '-' => self.add_token(TokenType::Minus),
             '+' => self.add_token(TokenType::Plus),
             ';' => self.add_token(TokenType::SemiColon),

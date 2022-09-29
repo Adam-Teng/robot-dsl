@@ -1,31 +1,28 @@
+use crate::env::Environment;
 use crate::error::Error;
-use crate::syntax::{expr, stmt, Expr, LiteralValue, Stmt};
+use crate::object::Object;
+use crate::syntax::{expr, stmt};
+use crate::syntax::{Expr, LiteralValue, Stmt};
 use crate::token::{Token, TokenType};
-enum Object {
-    Boolean(bool),
-    Number(f64),
-    String(String),
-}
 
-impl Object {
-    fn equals(&self, other: &Object) -> bool {
-        match (self, other) {
-            (Object::Boolean(a), Object::Boolean(b)) => a == b,
-            (Object::Number(a), Object::Number(b)) => a == b,
-            (Object::String(a), Object::String(b)) => a == b,
-            _ => false,
-        }
-    }
-}
+use std::cell::RefCell;
+use std::rc::Rc;
 
-pub struct Interpreter;
+pub struct Interpreter {
+    environment: Rc<RefCell<Environment>>,
+}
 
 impl Interpreter {
+    pub fn new() -> Self {
+        Interpreter {
+            environment: Rc::new(RefCell::new(Environment::new())),
+        }
+    }
+
     pub fn interpret(&mut self, statements: &Vec<Stmt>) -> Result<(), Error> {
         for statement in statements {
-            self.execute(&statement)?;
+            self.execute(statement)?;
         }
-
         Ok(())
     }
 
@@ -41,9 +38,28 @@ impl Interpreter {
         statement.accept(self)
     }
 
+    fn execute_block(
+        &mut self,
+        statements: &Vec<Stmt>,
+        environment: Rc<RefCell<Environment>>,
+    ) -> Result<(), Error> {
+        let previous = self.environment.clone();
+        let steps = || -> Result<(), Error> {
+            self.environment = environment;
+            for statement in statements {
+                self.execute(statement)?
+            }
+            Ok(())
+        };
+        let result = steps();
+        self.environment = previous;
+        result
+    }
+
     fn is_truthy(&self, object: &Object) -> bool {
         match object {
-            Object::Boolean(value) => value.clone(),
+            Object::Null => false,
+            Object::Boolean(b) => b.clone(),
             _ => true,
         }
     }
@@ -54,12 +70,14 @@ impl Interpreter {
 
     fn stringify(&self, object: Object) -> String {
         match object {
+            Object::Null => "nil".to_string(),
             Object::Number(n) => n.to_string(),
             Object::Boolean(b) => b.to_string(),
             Object::String(s) => s,
         }
     }
 
+    /// Equivalent to checkNumberOperands
     fn number_operand_error<R>(&self, operator: &Token) -> Result<R, Error> {
         Err(Error::Runtime {
             token: operator.clone(),
@@ -69,14 +87,6 @@ impl Interpreter {
 }
 
 impl expr::Visitor<Object> for Interpreter {
-    fn visit_literal_expr(&self, value: &LiteralValue) -> Result<Object, Error> {
-        match value {
-            LiteralValue::Boolean(b) => Ok(Object::Boolean(b.clone())),
-            LiteralValue::Number(n) => Ok(Object::Number(n.clone())),
-            LiteralValue::String(s) => Ok(Object::String(s.clone())),
-        }
-    }
-
     fn visit_binary_expr(
         &mut self,
         left: &Expr,
@@ -98,9 +108,12 @@ impl expr::Visitor<Object> for Interpreter {
                     Ok(Object::Number(left_number + right_number))
                 }
                 (Object::String(left_string), Object::String(right_string)) => {
-                    Ok(Object::String(format!("{}{}", left_string, right_string)))
+                    Ok(Object::String(left_string.clone() + &right_string))
                 }
-                _ => self.number_operand_error(operator),
+                _ => Err(Error::Runtime {
+                    token: operator.clone(),
+                    message: "Operands must be two numbers or two strings.".to_string(),
+                }),
             },
             TokenType::BangEqual => Ok(Object::Boolean(!self.is_equal(&l, &r))),
             TokenType::EqualEqual => Ok(Object::Boolean(self.is_equal(&l, &r))),
@@ -108,17 +121,49 @@ impl expr::Visitor<Object> for Interpreter {
         }
     }
 
+
+    fn visit_literal_expr(&self, value: &LiteralValue) -> Result<Object, Error> {
+        match value {
+            LiteralValue::Boolean(b) => Ok(Object::Boolean(b.clone())),
+            LiteralValue::Null => Ok(Object::Null),
+            LiteralValue::Number(n) => Ok(Object::Number(n.clone())),
+            LiteralValue::String(s) => Ok(Object::String(s.clone())),
+        }
+    }
+
     fn visit_unary_expr(&mut self, operator: &Token, right: &Expr) -> Result<Object, Error> {
         let right = self.evaluate(right)?;
 
         match &operator.tpe {
-            TokenType::Bang => Ok(Object::Boolean(!self.is_truthy(&right))),
-            _ => unreachable!(),
+            TokenType::Minus => match right {
+                Object::Number(n) => Ok(Object::Number(-n.clone())),
+                _ => self.number_operand_error(operator),
+            },
+            TokenType::Bang => Ok(Object::Boolean(!self.is_truthy(&right))), // TODO: is_truthy could simply return an Object.
+            _ => unreachable!(), // TODO: fail if right is not a number.
         }
+    }
+
+    fn visit_variable_expr(&mut self, name: &Token) -> Result<Object, Error> {
+        self.environment.borrow().get(name)
+    }
+
+    fn visit_assign_expr(&mut self, name: &Token, value: &Expr) -> Result<Object, Error> {
+        let v = self.evaluate(value)?;
+        self.environment.borrow_mut().assign(name, v.clone())?;
+        Ok(v)
     }
 }
 
 impl stmt::Visitor<()> for Interpreter {
+    fn visit_block_stmt(&mut self, statements: &Vec<Stmt>) -> Result<(), Error> {
+        self.execute_block(
+            statements,
+            Rc::new(RefCell::new(Environment::from(&self.environment))),
+        );
+        Ok(())
+    }
+
     fn visit_expression_stmt(&mut self, expression: &Expr) -> Result<(), Error> {
         self.evaluate(expression)?;
         Ok(())
@@ -127,6 +172,16 @@ impl stmt::Visitor<()> for Interpreter {
     fn visit_speak_stmt(&mut self, expression: &Expr) -> Result<(), Error> {
         let value = self.evaluate(expression)?;
         println!("{}", self.stringify(value));
+        Ok(())
+    }
+
+    fn visit_var_stmt(&mut self, name: &Token, initializer: &Option<Expr>) -> Result<(), Error> {
+        let value: Object = initializer
+            .as_ref()
+            .map(|i| self.evaluate(i))
+            .unwrap_or(Ok(Object::Null))?;
+
+        self.environment.borrow_mut().define(name.lexeme.clone(), value);
         Ok(())
     }
 }

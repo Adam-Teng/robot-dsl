@@ -2,7 +2,12 @@ use crate::error::Error;
 use crate::token::Token;
 use std::fmt;
 
+#[derive(Debug, Clone)]
 pub enum Expr {
+    Assign {
+        name: Token,
+        value: Box<Expr>,
+    },
     Binary {
         left: Box<Expr>,
         operator: Token,
@@ -15,18 +20,24 @@ pub enum Expr {
         operator: Token,
         right: Box<Expr>,
     },
+    Variable {
+        name: Token,
+    },
 }
 
+#[derive(Debug, Clone)]
 pub enum LiteralValue {
+    Boolean(bool),
+    Null,
     Number(f64),
     String(String),
-    Boolean(bool),
 }
 
 impl fmt::Display for LiteralValue {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             LiteralValue::Boolean(b) => write!(f, "{}", b),
+            LiteralValue::Null => write!(f, "null"),
             LiteralValue::Number(n) => write!(f, "{}", n),
             LiteralValue::String(s) => write!(f, "{}", s),
         }
@@ -35,13 +46,14 @@ impl fmt::Display for LiteralValue {
 
 impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.to_string())
+        write!(f, "{:?}", self)
     }
 }
 
 impl Expr {
     pub fn accept<R>(&self, visitor: &mut dyn expr::Visitor<R>) -> Result<R, Error> {
         match self {
+            Expr::Assign { name, value } => visitor.visit_assign_expr(name, value),
             Expr::Binary {
                 left,
                 operator,
@@ -49,6 +61,7 @@ impl Expr {
             } => visitor.visit_binary_expr(left, operator, right),
             Expr::Literal { value } => visitor.visit_literal_expr(value),
             Expr::Unary { operator, right } => visitor.visit_unary_expr(operator, right),
+            Expr::Variable { name } => visitor.visit_variable_expr(name),
         }
     }
 }
@@ -59,39 +72,57 @@ pub mod expr {
     use crate::token::Token;
 
     pub trait Visitor<R> {
+        fn visit_assign_expr(&mut self, name: &Token, value: &Expr) -> Result<R, Error>;
         fn visit_binary_expr(
             &mut self,
             left: &Expr,
             operator: &Token,
             right: &Expr,
         ) -> Result<R, Error>;
+
         fn visit_literal_expr(&self, value: &LiteralValue) -> Result<R, Error>;
         fn visit_unary_expr(&mut self, operator: &Token, right: &Expr) -> Result<R, Error>;
+        fn visit_variable_expr(&mut self, name: &Token) -> Result<R, Error>;
     }
 }
 
 pub enum Stmt {
-    Expression { expression: Expr },
-    Speak { expression: Expr },
+    Block {
+        statements: Vec<Stmt>,
+    },
+    Expression {
+        expression: Expr,
+    },
+    Speak {
+        expression: Expr,
+    },
+    Var {
+        name: Token,
+        initializer: Option<Expr>,
+    },
     Null,
 }
 
 impl Stmt {
     pub fn accept<R>(&self, visitor: &mut dyn stmt::Visitor<R>) -> Result<R, Error> {
         match self {
+            Stmt::Block { statements } => visitor.visit_block_stmt(statements),
             Stmt::Expression { expression } => visitor.visit_expression_stmt(expression),
             Stmt::Speak { expression } => visitor.visit_speak_stmt(expression),
+            Stmt::Var { name, initializer } => visitor.visit_var_stmt(name, initializer),
             Stmt::Null => unimplemented!(),
         }
     }
 }
 
 pub mod stmt {
-    use super::Expr;
-    use crate::error::Error;
+    use super::{Expr, Stmt};
+    use crate::{error::Error, token::Token};
 
     pub trait Visitor<R> {
+        fn visit_block_stmt(&mut self, statements: &Vec<Stmt>) -> Result<R, Error>;
         fn visit_expression_stmt(&mut self, expression: &Expr) -> Result<R, Error>;
         fn visit_speak_stmt(&mut self, expression: &Expr) -> Result<R, Error>;
+        fn visit_var_stmt(&mut self, name: &Token, initializer: &Option<Expr>) -> Result<R, Error>;
     }
 }

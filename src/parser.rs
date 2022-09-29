@@ -39,7 +39,11 @@ impl<'t> Parser<'t> {
     }
 
     fn declaration(&mut self) -> Result<Stmt, Error> {
-        let statement = self.statement();
+        let statement = if matches!(self, TokenType::Var) {
+            self.var_declaration()
+        } else {
+            self.statement()
+        };
 
         match statement {
             Err(Error::Parse) => {
@@ -53,6 +57,10 @@ impl<'t> Parser<'t> {
     fn statement(&mut self) -> Result<Stmt, Error> {
         if matches!(self, TokenType::Speak) {
             self.speak_statement()
+        } else if matches!(self, TokenType::LeftBrace) {
+            Ok(Stmt::Block {
+                statements: self.block()?,
+            })
         } else {
             self.expression_statement()
         }
@@ -64,14 +72,42 @@ impl<'t> Parser<'t> {
         Ok(Stmt::Speak { expression: value })
     }
 
+    fn var_declaration(&mut self) -> Result<Stmt, Error> {
+        let name = self.consume(TokenType::Identifier, "Expect variable name.")?;
+
+        let initializer = if matches!(self, TokenType::Equal) {
+            Some(self.expression()?)
+        } else {
+            None
+        };
+
+        self.consume(
+            TokenType::SemiColon,
+            "Expect ';' after variable declaration.",
+        )?;
+        Ok(Stmt::Var { name, initializer })
+    }
+
     fn expression_statement(&mut self) -> Result<Stmt, Error> {
         let expr = self.expression()?;
         self.consume(TokenType::SemiColon, "Expect ';' after expression.")?;
         Ok(Stmt::Expression { expression: expr })
     }
 
+    fn block(&mut self) -> Result<Vec<Stmt>, Error> {
+        let mut statements: Vec<Stmt> = Vec::new();
+
+        while !self.check(TokenType::RightBrace) && !self.is_at_end() {
+            statements.push(self.declaration()?);
+        }
+
+        self.consume(TokenType::RightBrace, "Expect '}' after block.")?;
+        Ok(statements)
+    }
+
+
     pub fn expression(&mut self) -> Result<Expr, Error> {
-        self.equality()
+        self.assignment()
     }
 
     fn equality(&mut self) -> Result<Expr, Error> {
@@ -85,6 +121,23 @@ impl<'t> Parser<'t> {
                 operator,
                 right: Box::new(right),
             };
+        }
+
+        Ok(expr)
+    }
+
+    fn assignment(&mut self) -> Result<Expr, Error> {
+        let expr = self.equality()?;
+
+        if matches!(self, TokenType::Equal) {
+            let value = Box::new(self.assignment()?);
+
+            if let Expr::Variable { name } = expr {
+                return Ok(Expr::Assign { name, value });
+            }
+
+            let equals = self.previous();
+            self.error(equals, "Invalid assignment target.");
         }
 
         Ok(expr)
@@ -127,11 +180,19 @@ impl<'t> Parser<'t> {
             TokenType::True => Expr::Literal {
                 value: LiteralValue::Boolean(true),
             },
+            /*
+            TokenType::Nil => Expr::Literal {
+                value: LiteralValue::Nil,
+            },
+            */
             TokenType::Number { literal } => Expr::Literal {
                 value: LiteralValue::Number(literal.clone()),
             },
             TokenType::String { literal } => Expr::Literal {
                 value: LiteralValue::String(literal.clone()),
+            },
+            TokenType::Identifier => Expr::Variable {
+                name: self.peek().clone(),
             },
             _ => return Err(self.error(self.peek(), "Expected expression")),
         };

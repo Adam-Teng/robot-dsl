@@ -7,7 +7,7 @@ step Billing();
 step Charging();
   speak "请输入你的充值金额";
   var x;
-  input(x);
+  input x;
   bill = bill + x;
 
 step Complaining();
@@ -18,7 +18,7 @@ step Complaining();
 speak "你好，"+name+"有什么需要的吗";
 var str;
 speak "请输入 余额 来查看余额，输入 充值 来向卡内充值，输入 投诉 来进行投诉，输入 退出 以结束对话”;
-input(str);
+input str;
 branch str=="余额" Billing();
 branch str=="充值" Charging();
 branch str=="投诉" Complaining();

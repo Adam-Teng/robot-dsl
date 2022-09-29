@@ -7,7 +7,7 @@ fn test_interpreter_speak_string() {
     let tokens = scanner.scan_tokens();
     let mut parser = Parser::new(&tokens);
     let statements = parser.parse().unwrap();
-    let mut interpreter = Interpreter;
+    let mut interpreter = Interpreter::new();
     assert!(interpreter.interpret(&statements).is_ok());
 }
 
@@ -18,7 +18,7 @@ fn test_interpreter_speak_number() {
     let tokens = scanner.scan_tokens();
     let mut parser = Parser::new(&tokens);
     let statements = parser.parse().unwrap();
-    let mut interpreter = Interpreter;
+    let mut interpreter = Interpreter::new();
     assert!(interpreter.interpret(&statements).is_ok());
 }
 
@@ -29,7 +29,7 @@ fn test_interpreter_speak_true() {
     let tokens = scanner.scan_tokens();
     let mut parser = Parser::new(&tokens);
     let statements = parser.parse().unwrap();
-    let mut interpreter = Interpreter;
+    let mut interpreter = Interpreter::new();
     assert!(interpreter.interpret(&statements).is_ok());
 }
 
@@ -40,7 +40,7 @@ fn test_interpreter_speak_false() {
     let tokens = scanner.scan_tokens();
     let mut parser = Parser::new(&tokens);
     let statements = parser.parse().unwrap();
-    let mut interpreter = Interpreter;
+    let mut interpreter = Interpreter::new();
     assert!(interpreter.interpret(&statements).is_ok());
 }
 
@@ -51,6 +51,6 @@ fn test_interpreter_speak_expression() {
     let tokens = scanner.scan_tokens();
     let mut parser = Parser::new(&tokens);
     let statements = parser.parse().unwrap();
-    let mut interpreter = Interpreter;
+    let mut interpreter = Interpreter::new();
     assert!(interpreter.interpret(&statements).is_ok());
 }

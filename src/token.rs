@@ -7,6 +7,10 @@ pub enum TokenType {
     Minus,
     Plus,
     SemiColon,
+    LeftParen,
+    RightParen,
+    LeftBrace,
+    RightBrace,
 
     // One or two character tokens.
     Bang,
