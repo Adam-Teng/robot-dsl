@@ -54,3 +54,59 @@ fn test_interpreter_speak_expression() {
     let mut interpreter = Interpreter::new();
     assert!(interpreter.interpret(&statements).is_ok());
 }
+
+#[test]
+fn test_interpreter_var_expression() {
+    let speaking: String = "var a = 1 + 1; speak a;".to_string();
+    let mut scanner = Scanner::new(speaking);
+    let tokens = scanner.scan_tokens();
+    let mut parser = Parser::new(&tokens);
+    let statements = parser.parse().unwrap();
+    let mut interpreter = Interpreter::new();
+    assert!(interpreter.interpret(&statements).is_ok());
+}
+
+#[test]
+fn test_interpreter_var_expression_with_assignment() {
+    let speaking: String = "var a = 1 + 1; speak a; a = 2; speak a;".to_string();
+    let mut scanner = Scanner::new(speaking);
+    let tokens = scanner.scan_tokens();
+    let mut parser = Parser::new(&tokens);
+    let statements = parser.parse().unwrap();
+    let mut interpreter = Interpreter::new();
+    assert!(interpreter.interpret(&statements).is_ok());
+}
+
+#[test]
+fn test_interpreter_var_expression_with_assignment_and_reassignment() {
+    let speaking: String = "var a = 1 + 1; speak a; a = 2; speak a; a = 3; speak a;".to_string();
+    let mut scanner = Scanner::new(speaking);
+    let tokens = scanner.scan_tokens();
+    let mut parser = Parser::new(&tokens);
+    let statements = parser.parse().unwrap();
+    let mut interpreter = Interpreter::new();
+    assert!(interpreter.interpret(&statements).is_ok());
+}
+
+#[test]
+fn test_interpreter_scope() {
+    let speaking: String = "var a = 1 + 1; speak a; { var a = 2; speak a; } speak a;".to_string();
+    let mut scanner = Scanner::new(speaking);
+    let tokens = scanner.scan_tokens();
+    let mut parser = Parser::new(&tokens);
+    let statements = parser.parse().unwrap();
+    let mut interpreter = Interpreter::new();
+    assert!(interpreter.interpret(&statements).is_ok());
+}
+
+#[test]
+fn test_interpreter_scope_with_reassignment() {
+    let speaking: String = "var a = 1 + 1; speak a; { var a = 2; speak a; a = 3; speak a; } speak a;".to_string();
+    let mut scanner = Scanner::new(speaking);
+    let tokens = scanner.scan_tokens();
+    let mut parser = Parser::new(&tokens);
+    let statements = parser.parse().unwrap();
+    let mut interpreter = Interpreter::new();
+    assert!(interpreter.interpret(&statements).is_ok());
+}
+

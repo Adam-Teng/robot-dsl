@@ -70,3 +70,53 @@ impl fmt::Display for Environment {
         write!(f, "values: {:?}", self.values)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::token::TokenType;
+
+    #[test]
+    fn test_get() {
+        let env = Rc::new(RefCell::new(Environment::new()));
+        env.borrow_mut().define("a".to_string(), Object::Number(1.0));
+        env.borrow_mut().define("b".to_string(), Object::Number(2.0));
+        env.borrow_mut().define("c".to_string(), Object::Number(3.0));
+
+        assert!(env.borrow().get(&Token::new(TokenType::Identifier, &"a".to_string(), 1)).is_ok());
+        assert!(env.borrow().get(&Token::new(TokenType::Identifier, &"b".to_string(), 1)).is_ok());
+        assert!(env.borrow().get(&Token::new(TokenType::Identifier, &"c".to_string(), 1)).is_ok());
+    }
+
+    #[test]
+    fn test_get_undefined() {
+        let env = Rc::new(RefCell::new(Environment::new()));
+        env.borrow_mut().define("a".to_string(), Object::Number(1.0));
+        env.borrow_mut().define("b".to_string(), Object::Number(2.0));
+        env.borrow_mut().define("c".to_string(), Object::Number(3.0));
+
+        assert!(env.borrow().get(&Token::new(TokenType::Identifier, &"d".to_string(), 1)).is_err());
+    }
+
+    #[test]
+    fn test_assign() {
+        let env = Rc::new(RefCell::new(Environment::new()));
+        env.borrow_mut().define("a".to_string(), Object::Number(1.0));
+        env.borrow_mut().define("b".to_string(), Object::Number(2.0));
+        env.borrow_mut().define("c".to_string(), Object::Number(3.0));
+
+        assert!(env.borrow_mut().assign(&Token::new(TokenType::Identifier, &"a".to_string(), 1), Object::Number(4.0)).is_ok());
+        assert!(env.borrow_mut().assign(&Token::new(TokenType::Identifier, &"b".to_string(), 1), Object::Number(5.0)).is_ok());
+        assert!(env.borrow_mut().assign(&Token::new(TokenType::Identifier, &"c".to_string(), 1), Object::Number(6.0)).is_ok());
+    }
+
+    #[test]
+    fn test_assign_undefined() {
+        let env = Rc::new(RefCell::new(Environment::new()));
+        env.borrow_mut().define("a".to_string(), Object::Number(1.0));
+        env.borrow_mut().define("b".to_string(), Object::Number(2.0));
+        env.borrow_mut().define("c".to_string(), Object::Number(3.0));
+
+        assert!(env.borrow_mut().assign(&Token::new(TokenType::Identifier, &"d".to_string(), 1), Object::Number(4.0)).is_err());
+    }
+}
