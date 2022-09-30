@@ -392,4 +392,15 @@ mod test {
         assert_eq!(tokens[47].tpe, TokenType::Exit);
         assert_eq!(tokens[48].tpe, TokenType::EOF);
     }
+
+    #[test]
+    fn test_scan_chinese() {
+        let source = "你好".to_string();
+        let mut scanner = Scanner::new(source);
+        let tokens = scanner.scan_tokens();
+        assert_eq!(tokens.len(), 3);
+        assert_eq!(tokens[0].tpe, TokenType::Identifier);
+        assert_eq!(tokens[1].tpe, TokenType::Identifier);
+        assert_eq!(tokens[2].tpe, TokenType::EOF);
+    }
 }
