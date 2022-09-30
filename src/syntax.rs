@@ -96,6 +96,9 @@ pub enum Stmt {
     Speak {
         expression: Expr,
     },
+    Input {
+        input: Token,
+    },
     Var {
         name: Token,
         initializer: Option<Expr>,
@@ -109,6 +112,7 @@ impl Stmt {
             Stmt::Block { statements } => visitor.visit_block_stmt(statements),
             Stmt::Expression { expression } => visitor.visit_expression_stmt(expression),
             Stmt::Speak { expression } => visitor.visit_speak_stmt(expression),
+            Stmt::Input { input} => visitor.visit_input_stmt(input),
             Stmt::Var { name, initializer } => visitor.visit_var_stmt(name, initializer),
             Stmt::Null => unimplemented!(),
         }
@@ -123,6 +127,7 @@ pub mod stmt {
         fn visit_block_stmt(&mut self, statements: &Vec<Stmt>) -> Result<R, Error>;
         fn visit_expression_stmt(&mut self, expression: &Expr) -> Result<R, Error>;
         fn visit_speak_stmt(&mut self, expression: &Expr) -> Result<R, Error>;
+        fn visit_input_stmt(&mut self, name: &Token) -> Result<R, Error>;
         fn visit_var_stmt(&mut self, name: &Token, initializer: &Option<Expr>) -> Result<R, Error>;
     }
 }

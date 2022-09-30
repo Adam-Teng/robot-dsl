@@ -57,6 +57,8 @@ impl<'t> Parser<'t> {
     fn statement(&mut self) -> Result<Stmt, Error> {
         if matches!(self, TokenType::Speak) {
             self.speak_statement()
+        } else if matches!(self, TokenType::Input) {
+            self.input_statement()
         } else if matches!(self, TokenType::LeftBrace) {
             Ok(Stmt::Block {
                 statements: self.block()?,
@@ -70,6 +72,13 @@ impl<'t> Parser<'t> {
         let value = self.expression()?;
         self.consume(TokenType::SemiColon, "Expect ';' after value.")?;
         Ok(Stmt::Speak { expression: value })
+    }
+
+    fn input_statement(&mut self) -> Result<Stmt, Error> {
+        // 'input str' let str be input
+        let input = self.consume(TokenType::Identifier, "Expect variable name.")?;
+        self.consume(TokenType::SemiColon, "Expect ';' after input.")?;
+        Ok(Stmt::Input { input })
     }
 
     fn var_declaration(&mut self) -> Result<Stmt, Error> {
@@ -106,7 +115,7 @@ impl<'t> Parser<'t> {
     }
 
 
-    pub fn expression(&mut self) -> Result<Expr, Error> {
+    fn expression(&mut self) -> Result<Expr, Error> {
         self.assignment()
     }
 
@@ -180,11 +189,9 @@ impl<'t> Parser<'t> {
             TokenType::True => Expr::Literal {
                 value: LiteralValue::Boolean(true),
             },
-            /*
             TokenType::Nil => Expr::Literal {
-                value: LiteralValue::Nil,
+                value: LiteralValue::Null,
             },
-            */
             TokenType::Number { literal } => Expr::Literal {
                 value: LiteralValue::Number(literal.clone()),
             },

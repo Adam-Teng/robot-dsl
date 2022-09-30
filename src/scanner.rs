@@ -1,6 +1,9 @@
 use crate::error::error;
 use crate::token::{Token, TokenType, KEYWORDS};
 
+/// 
+/// scanner 类型，对源代码进行扫描和初步词法分析处理
+/// 
 pub struct Scanner {
     source: String,
     tokens: Vec<Token>,
@@ -12,14 +15,32 @@ pub struct Scanner {
 impl Scanner {
     pub fn new(source: String) -> Self {
         Scanner {
+            /// 源代码
             source,
+            /// 扫描后结果存储的位置
             tokens: Vec::new(),
+            /// 扫描的起始位置
             start: 0,
+            /// 当下扫描位置
             current: 0,
+            /// 当下扫描行的位置
             line: 1,
         }
     }
 
+    ///
+    /// 扫描完**整个**源代码
+    /// 
+    /// notes
+    /// - 接口暴露在外，可供其他程序调用
+    /// - `scan_token`函数已经将结果 push 入 `self.token` 向量中，最后将 EOF push 入即可返回 `tokens`
+    /// 
+    /// 使用示例
+    /// ```rust
+    /// let mut scanner = Scanner::new(source);
+    /// let tokens = scanner.scan_tokens();
+    /// ```
+    /// 
     pub fn scan_tokens(&mut self) -> &Vec<Token> {
         while !self.is_at_end() {
             // We are at the beginning of the next lexeme.

@@ -109,4 +109,3 @@ fn test_interpreter_scope_with_reassignment() {
     let mut interpreter = Interpreter::new();
     assert!(interpreter.interpret(&statements).is_ok());
 }
-

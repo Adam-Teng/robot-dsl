@@ -6,3 +6,6 @@ run:
 
 runfile:
     cargo run example/dsl.txt
+
+doc:
+    cargo doc

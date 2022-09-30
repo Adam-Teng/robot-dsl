@@ -7,6 +7,7 @@ use crate::token::{Token, TokenType};
 
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::io;
 
 pub struct Interpreter {
     environment: Rc<RefCell<Environment>>,
@@ -174,6 +175,18 @@ impl stmt::Visitor<()> for Interpreter {
         println!("{}", self.stringify(value));
         Ok(())
     }
+
+    fn visit_input_stmt(&mut self, name: &Token) -> Result<(), Error> {
+        let mut input = String::new();
+        io::stdin().read_line(&mut input)?;
+        // remove '\n'
+        input.pop();
+        self.environment
+            .borrow_mut()
+            .define(name.lexeme.clone(), Object::String(input));
+        Ok(())
+    }
+
 
     fn visit_var_stmt(&mut self, name: &Token, initializer: &Option<Expr>) -> Result<(), Error> {
         let value: Object = initializer
