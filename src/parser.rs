@@ -59,6 +59,8 @@ impl<'t> Parser<'t> {
             self.speak_statement()
         } else if matches!(self, TokenType::Input) {
             self.input_statement()
+        } else if matches!(self, TokenType::Listen) {
+            self.listen_statement()
         } else if matches!(self, TokenType::LeftBrace) {
             Ok(Stmt::Block {
                 statements: self.block()?,
@@ -79,6 +81,12 @@ impl<'t> Parser<'t> {
         let input = self.consume(TokenType::Identifier, "Expect variable name.")?;
         self.consume(TokenType::SemiColon, "Expect ';' after input.")?;
         Ok(Stmt::Input { input })
+    }
+
+    fn listen_statement(&mut self) -> Result<Stmt, Error> {
+        let time = self.expression()?;
+        self.consume(TokenType::SemiColon, "Expect ';' after time.")?;
+        Ok(Stmt::Listen { time })
     }
 
     fn var_declaration(&mut self) -> Result<Stmt, Error> {

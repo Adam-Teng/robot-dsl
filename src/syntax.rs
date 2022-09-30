@@ -99,6 +99,9 @@ pub enum Stmt {
     Input {
         input: Token,
     },
+    Listen {
+        time: Expr,
+    },
     Var {
         name: Token,
         initializer: Option<Expr>,
@@ -113,6 +116,7 @@ impl Stmt {
             Stmt::Expression { expression } => visitor.visit_expression_stmt(expression),
             Stmt::Speak { expression } => visitor.visit_speak_stmt(expression),
             Stmt::Input { input} => visitor.visit_input_stmt(input),
+            Stmt::Listen { time } => visitor.visit_listen_stmt(time),
             Stmt::Var { name, initializer } => visitor.visit_var_stmt(name, initializer),
             Stmt::Null => unimplemented!(),
         }
@@ -128,6 +132,7 @@ pub mod stmt {
         fn visit_expression_stmt(&mut self, expression: &Expr) -> Result<R, Error>;
         fn visit_speak_stmt(&mut self, expression: &Expr) -> Result<R, Error>;
         fn visit_input_stmt(&mut self, name: &Token) -> Result<R, Error>;
+        fn visit_listen_stmt(&mut self, time: &Expr) -> Result<R, Error>;
         fn visit_var_stmt(&mut self, name: &Token, initializer: &Option<Expr>) -> Result<R, Error>;
     }
 }

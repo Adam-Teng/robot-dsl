@@ -8,6 +8,8 @@ use crate::token::{Token, TokenType};
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::io;
+use std::thread::sleep;
+use std::time::Duration;
 
 pub struct Interpreter {
     environment: Rc<RefCell<Environment>>,
@@ -187,6 +189,19 @@ impl stmt::Visitor<()> for Interpreter {
         Ok(())
     }
 
+    fn visit_listen_stmt(&mut self, time: &Expr) -> Result<(), Error> {
+        let temp = self.evaluate(time)?;
+        // from object to number
+        let num = match temp {
+            Object::Number(n) => n,
+            _ => unreachable!(),
+        };
+        // from number to duration
+        // sleep as seconds
+        let dur = Duration::from_secs_f64(num);
+        sleep(dur);
+        Ok(())
+    }
 
     fn visit_var_stmt(&mut self, name: &Token, initializer: &Option<Expr>) -> Result<(), Error> {
         let value: Object = initializer
