@@ -109,3 +109,14 @@ fn test_interpreter_scope_with_reassignment() {
     let mut interpreter = Interpreter::new();
     assert!(interpreter.interpret(&statements).is_ok());
 }
+
+#[test]
+fn test_interpreter_branch_statement() {
+    let speaking: String = "branch (true) { speak 1; }".to_string();
+    let mut scanner = Scanner::new(speaking);
+    let tokens = scanner.scan_tokens();
+    let mut parser = Parser::new(&tokens);
+    let statements = parser.parse().unwrap();
+    let mut interpreter = Interpreter::new();
+    assert!(interpreter.interpret(&statements).is_ok());
+}

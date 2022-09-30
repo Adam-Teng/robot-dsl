@@ -17,10 +17,8 @@ speak "Hello, "+name+" is there any help?";
 loop {
 speak "Please enter 'b' to check the remain, enter 'r' to recharge the card, enter 'c' to make a complaint, enter 'e' to end the dialogue”;
 input str;
-branch str=="b" Billing();
-branch str=="r" Charging();
-branch str=="c" Complaining();
-branch str=="e" exit;
-branch wait 60 speak "No operation“;exit;
+branch (str=="b") Billing();
+branch (str=="r") Charging();
+branch (str=="c") Complaining();
+branch (str=="e") exit;
 }
-

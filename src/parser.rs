@@ -61,6 +61,8 @@ impl<'t> Parser<'t> {
             self.input_statement()
         } else if matches!(self, TokenType::Listen) {
             self.listen_statement()
+        } else if matches!(self, TokenType::Branch) {
+            self.branch_statement()
         } else if matches!(self, TokenType::LeftBrace) {
             Ok(Stmt::Block {
                 statements: self.block()?,
@@ -68,6 +70,14 @@ impl<'t> Parser<'t> {
         } else {
             self.expression_statement()
         }
+    }
+
+    fn branch_statement(&mut self) -> Result<Stmt, Error> {
+        self.consume(TokenType::LeftParen, "Expect '(' after 'branch'.")?;
+        let condition = self.expression()?;
+        self.consume(TokenType::RightParen, "Expect ')' after branch condition.")?;
+        let then = Box::new(self.statement()?);
+        Ok(Stmt::Branch { condition, then })
     }
 
     fn speak_statement(&mut self) -> Result<Stmt, Error> {
@@ -121,7 +131,6 @@ impl<'t> Parser<'t> {
         self.consume(TokenType::RightBrace, "Expect '}' after block.")?;
         Ok(statements)
     }
-
 
     fn expression(&mut self) -> Result<Expr, Error> {
         self.assignment()

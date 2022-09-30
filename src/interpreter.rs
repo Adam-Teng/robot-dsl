@@ -172,6 +172,14 @@ impl stmt::Visitor<()> for Interpreter {
         Ok(())
     }
 
+    fn visit_branch_stmt(&mut self, condition: &Expr, then: &Stmt) -> Result<(), Error> {
+        let condition = self.evaluate(condition)?;
+        if self.is_truthy(&condition) {
+            self.execute(then)?;
+        }
+        Ok(())
+    }
+
     fn visit_speak_stmt(&mut self, expression: &Expr) -> Result<(), Error> {
         let value = self.evaluate(expression)?;
         println!("{}", self.stringify(value));
