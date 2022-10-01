@@ -26,6 +26,7 @@ fn main() {
         .entry("exit", "TokenType::Exit")
         .entry("input", "TokenType::Input")
         .entry("loop", "TokenType::Loop")
+        .entry("inputn", "TokenType::Inputn")
         .entry("nil", "TokenType::Nil")
         .build(&mut file)
         .unwrap();

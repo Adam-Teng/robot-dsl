@@ -7,7 +7,8 @@ step Billing() {
 
 step Charging() {
   speak "Please enter your recharge amount";
-  input x;
+  inputn x;
+  speak x;
   bill = bill + x;
 }
 

@@ -128,6 +128,9 @@ pub enum Stmt {
     Input {
         input: Token,
     },
+    Inputn {
+        input: Token,
+    },
     Listen {
         time: Expr,
     },
@@ -149,6 +152,7 @@ impl Stmt {
             Stmt::Loop { body } => visitor.visit_loop_stmt(body),
             Stmt::Speak { expression } => visitor.visit_speak_stmt(expression),
             Stmt::Input { input } => visitor.visit_input_stmt(input),
+            Stmt::Inputn { input } => visitor.visit_inputn_stmt(input),
             Stmt::Listen { time } => visitor.visit_listen_stmt(time),
             Stmt::Var { name, initializer } => visitor.visit_var_stmt(name, initializer),
             Stmt::Exit => visitor.visit_exit_stmt(),
@@ -174,6 +178,7 @@ pub mod stmt {
         fn visit_loop_stmt(&mut self, body: &Stmt) -> Result<R, Error>;
         fn visit_speak_stmt(&mut self, expression: &Expr) -> Result<R, Error>;
         fn visit_input_stmt(&mut self, name: &Token) -> Result<R, Error>;
+        fn visit_inputn_stmt(&mut self, name: &Token) -> Result<R, Error>;
         fn visit_listen_stmt(&mut self, time: &Expr) -> Result<R, Error>;
         fn visit_var_stmt(&mut self, name: &Token, initializer: &Option<Expr>) -> Result<R, Error>;
         fn visit_exit_stmt(&mut self) -> Result<R, Error>;

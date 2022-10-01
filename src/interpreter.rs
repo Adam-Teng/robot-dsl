@@ -281,6 +281,18 @@ impl stmt::Visitor<()> for Interpreter {
         Ok(())
     }
 
+    fn visit_inputn_stmt(&mut self, name: &Token) -> Result<(), Error> {
+        let mut input = String::new();
+        io::stdin().read_line(&mut input)?;
+        // remove '\n'
+        input.pop();
+        let number: f64 = input.parse().unwrap();
+        self.environment
+            .borrow_mut()
+            .define(name.lexeme.clone(), Object::Number(number));
+        Ok(())        
+    }
+
     fn visit_listen_stmt(&mut self, time: &Expr) -> Result<(), Error> {
         let temp = self.evaluate(time)?;
         // from object to number

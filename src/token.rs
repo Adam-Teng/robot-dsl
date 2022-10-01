@@ -35,6 +35,7 @@ pub enum TokenType {
     // Keywords.
     Speak,
     Listen,
+    Inputn,
     Branch,
     Loop,
     Step,
