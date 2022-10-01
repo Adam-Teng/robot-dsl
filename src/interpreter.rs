@@ -226,4 +226,8 @@ impl stmt::Visitor<()> for Interpreter {
         self.environment.borrow_mut().define(name.lexeme.clone(), value);
         Ok(())
     }
+
+    fn visit_exit_stmt(&mut self) -> Result<(), Error> {
+        std::process::exit(0);
+    }
 }

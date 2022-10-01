@@ -1,20 +1,6 @@
-speak 3+1; //test
-var a = "global a";
-var b = "global b";
-var c = "global c";
-{
-  var a = "outer a";
-  var b = "outer b";
-  {
-    var a = "inner a";
-    speak a;
-    speak b;
-    speak c;
-  }
-  speak a;
-  speak b;
-  speak c;
+loop {
+  speak 1;
+  speak 2;
+  speak 3;
+  exit
 }
-speak a;
-speak b;
-speak c;

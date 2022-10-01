@@ -65,6 +65,8 @@ impl<'t> Parser<'t> {
             self.branch_statement()
         } else if matches!(self, TokenType::Loop) {
             self.loop_statement() 
+        } else if matches!(self, TokenType::Exit) {
+            self.exit_statement()
         } else if matches!(self, TokenType::LeftBrace) {
             Ok(Stmt::Block {
                 statements: self.block()?,
@@ -72,6 +74,10 @@ impl<'t> Parser<'t> {
         } else {
             self.expression_statement()
         }
+    }
+
+    fn exit_statement(&mut self) -> Result<Stmt, Error> {
+        Ok(Stmt::Exit)
     }
 
     fn loop_statement(&mut self) -> Result<Stmt, Error> {

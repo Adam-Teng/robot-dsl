@@ -113,6 +113,7 @@ pub enum Stmt {
         name: Token,
         initializer: Option<Expr>,
     },
+    Exit,
     Null,
 }
 
@@ -127,6 +128,7 @@ impl Stmt {
             Stmt::Input { input} => visitor.visit_input_stmt(input),
             Stmt::Listen { time } => visitor.visit_listen_stmt(time),
             Stmt::Var { name, initializer } => visitor.visit_var_stmt(name, initializer),
+            Stmt::Exit => visitor.visit_exit_stmt(),
             Stmt::Null => unimplemented!(),
         }
     }
@@ -145,5 +147,6 @@ pub mod stmt {
         fn visit_input_stmt(&mut self, name: &Token) -> Result<R, Error>;
         fn visit_listen_stmt(&mut self, time: &Expr) -> Result<R, Error>;
         fn visit_var_stmt(&mut self, name: &Token, initializer: &Option<Expr>) -> Result<R, Error>;
+        fn visit_exit_stmt(&mut self) -> Result<R, Error>;
     }
 }

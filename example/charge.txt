@@ -20,5 +20,5 @@ input str;
 branch (str=="b") Billing();
 branch (str=="r") Charging();
 branch (str=="c") Complaining();
-branch (str=="e") exit;
+branch (str=="e") exit
 }
