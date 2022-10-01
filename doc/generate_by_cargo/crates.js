@@ -1,0 +1,1 @@
+window.ALL_CRATES = ["phf","phf_shared","robot_dsl","siphasher"];

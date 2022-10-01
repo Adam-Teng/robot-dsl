@@ -2,34 +2,72 @@ use crate::error::Error;
 use crate::token::Token;
 use std::fmt;
 
+///
+/// 语法树中表达式的枚举类型，方便递归下降分析
+///
+/// 共有如下表达式：
+/// - 变量
+/// - 一元表达式
+/// - 二元表达式
+/// - 函数调用
+/// - 字面量
+/// - 赋值语句
+///
 #[derive(Debug, Clone)]
 pub enum Expr {
+    /// 赋值表达式
     Assign {
+        /// 赋值的变量
         name: Token,
+        /// 赋值的值
         value: Box<Expr>,
     },
+    /// 函数调用表达式
     Call {
+        /// 表达式的值
         callee: Box<Expr>,
+        /// 函数名
         paren: Token,
+        /// 参数列表
         arguments: Vec<Expr>,
     },
+    /// 二元表达式
     Binary {
+        /// 左操作数
         left: Box<Expr>,
+        /// 运算符
         operator: Token,
+        /// 右操作数
         right: Box<Expr>,
     },
+    /// 字面量
     Literal {
+        /// 字面量的值
         value: LiteralValue,
     },
+    /// 一元表达式
     Unary {
+        /// 运算符
         operator: Token,
+        /// 操作数
         right: Box<Expr>,
     },
+    /// 变量
     Variable {
+        /// 变量名
         name: Token,
     },
 }
 
+///
+/// 字面量枚举类型，作为表达式中的字面量类型使用
+///
+/// 共有如下类型：
+/// - 数字
+/// - 字符串
+/// - 布尔值
+/// - 空值
+///
 #[derive(Debug, Clone)]
 pub enum LiteralValue {
     Boolean(bool),
@@ -76,6 +114,9 @@ impl Expr {
     }
 }
 
+///
+/// 表达式模块的访问者接口
+///
 pub mod expr {
     use super::{Expr, LiteralValue};
     use crate::error::Error;
@@ -102,43 +143,85 @@ pub mod expr {
     }
 }
 
+///
+/// 语法树中语句的枚举类型
+///
+/// 共有如下语句：
+/// - 表达式语句
+/// - 打印语句
+/// - 变量声明语句
+/// - 块语句
+/// - 输入字符串语句
+/// - 输入数字语句
+/// - 循环语句
+/// - 条件语句
+/// - 函数声明语句
+/// - 等待语句
+/// - 退出语句
+///
 #[derive(Clone)]
 pub enum Stmt {
+    /// 块语句
     Block {
+        /// 块语句中的语句列表
         statements: Vec<Stmt>,
     },
+    /// 表达式语句
     Expression {
+        /// 表达式语句中的表达式
         expression: Expr,
     },
+    /// 分支语句
     Branch {
+        /// 分支语句中的条件表达式
         condition: Expr,
+        /// 分支语句中的执行语句
         then: Box<Stmt>,
     },
+    /// 循环语句， 无限循环
     Loop {
+        /// 循环语句中的执行语句
         body: Box<Stmt>,
     },
+    /// 函数声明语句
     Function {
+        /// 函数声明语句中的函数名
         name: Token,
+        /// 函数声明语句中的参数列表
         params: Vec<Token>,
+        /// 函数声明语句中的函数体
         body: Vec<Stmt>,
     },
+    /// 打印语句
     Speak {
+        /// 打印语句中的表达式
         expression: Expr,
     },
+    /// 输入字符串语句
     Input {
+        /// 输入字符串语句中的变量名
         input: Token,
     },
+    /// 输入数字语句
     Inputn {
+        /// 输入数字语句中的变量名
         input: Token,
     },
+    /// 停止语句
     Listen {
+        /// 停止时间表达式
         time: Expr,
     },
+    /// 变量声明语句
     Var {
+        /// 变量声明语句中的变量名
         name: Token,
+        /// 变量声明语句中的变量值
         initializer: Option<Expr>,
     },
+    /// 退出语句
     Exit,
+    /// 空语句
     Null,
 }
 
@@ -147,7 +230,9 @@ impl Stmt {
         match self {
             Stmt::Block { statements } => visitor.visit_block_stmt(statements),
             Stmt::Expression { expression } => visitor.visit_expression_stmt(expression),
-            Stmt::Function { name, params, body } => visitor.visit_function_stmt(name, params, body),
+            Stmt::Function { name, params, body } => {
+                visitor.visit_function_stmt(name, params, body)
+            }
             Stmt::Branch { condition, then } => visitor.visit_branch_stmt(condition, then),
             Stmt::Loop { body } => visitor.visit_loop_stmt(body),
             Stmt::Speak { expression } => visitor.visit_speak_stmt(expression),
@@ -161,6 +246,9 @@ impl Stmt {
     }
 }
 
+///
+/// 语句模块的访问者接口
+///
 pub mod stmt {
     use super::{Expr, Stmt};
     use crate::{error::Error, token::Token};

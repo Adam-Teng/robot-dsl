@@ -1,15 +1,15 @@
 use std::fmt;
 extern crate phf;
 
-/// 
-/// 对 token 字段类型的枚举定义
-/// 
+///
+/// 对词素类型的枚举定义
+///
 /// 分为如下四类：
 /// - 单符号token
 /// - 多符号token
 /// - 字面量
 /// - 关键字
-/// 
+///
 #[derive(Debug, Clone, PartialEq)]
 pub enum TokenType {
     // Single-character tokens.
@@ -52,9 +52,9 @@ pub enum TokenType {
 // Generated via phf_codegen until proc_macro_hygiene is stable.
 include!(concat!(env!("OUT_DIR"), "/keywords.rs"));
 
-/// 
+///
 /// Token 类型，对词素进行打包
-/// 
+///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Token {
     /// Token 字段类型
@@ -66,6 +66,9 @@ pub struct Token {
 }
 
 impl Token {
+    ///
+    /// 生成一个新的 Token
+    ///
     pub fn new(tpe: TokenType, lexeme: &str, line: i32) -> Self {
         Self {
             tpe,
@@ -75,9 +78,9 @@ impl Token {
     }
 }
 
-/// 
+///
 /// 打印 token 中特定类型的词素的内容
-/// 
+///
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.tpe {

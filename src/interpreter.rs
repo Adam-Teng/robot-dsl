@@ -7,17 +7,24 @@ use crate::syntax::{Expr, LiteralValue, Stmt};
 use crate::token::{Token, TokenType};
 
 use std::cell::RefCell;
-use std::rc::Rc;
 use std::io;
+use std::rc::Rc;
 use std::thread::sleep;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
+///
+/// 定义解释器的类型
+///
 pub struct Interpreter {
+    /// 全局环境
     pub globals: Rc<RefCell<Environment>>,
     environment: Rc<RefCell<Environment>>,
 }
 
 impl Interpreter {
+    ///
+    /// 创建 Interpreter 对象
+    ///
     pub fn new() -> Self {
         let globals = Rc::new(RefCell::new(Environment::new()));
         let clock: Object = Object::Callable(Function::Native {
@@ -38,6 +45,28 @@ impl Interpreter {
         }
     }
 
+    ///
+    /// 解释语句
+    ///
+    /// # 参数列表
+    /// * statements: 语句列表
+    ///
+    /// # 返回值
+    /// * 执行过程是否出错
+    ///
+    /// # 使用示例
+    /// ```rust
+    /// let mut interpreter = Interpreter::new();
+    /// let mut parser = Parser::new();
+    /// let mut lexer = Lexer::new();
+    /// let source = r#"
+    ///    print "Hello, World!";
+    /// "#;
+    /// let tokens = lexer.lex(source);
+    /// let statements = parser.parse(tokens);
+    /// interpreter.interpret(statements);
+    /// ```
+    ///
     pub fn interpret(&mut self, statements: &Vec<Stmt>) -> Result<(), Error> {
         for statement in statements {
             self.execute(statement)?;
@@ -45,6 +74,30 @@ impl Interpreter {
         Ok(())
     }
 
+    ///
+    /// 计算表达式语句，用于对表达式递归下降分析的集成测试
+    ///
+    /// # 参数列表
+    /// * expression: 表达式
+    ///
+    /// # 返回值
+    /// * 表达式的值
+    /// * 错误
+    ///
+    /// # 使用示例
+    /// ```rust
+    /// let mut interpreter = Interpreter::new();
+    /// let mut parser = Parser::new();
+    /// let mut lexer = Lexer::new();
+    /// let source = r#"
+    ///   1 + 2 * 3;
+    /// "#;
+    /// let tokens = lexer.lex(source);
+    /// let expression = parser.parse_expression(tokens);
+    /// let result = interpreter.evaluate(&expression);
+    /// assert_eq!(result.unwrap(), Object::Number(7.0));
+    /// ```
+    ///
     pub fn interpret_cal(&mut self, expression: &Expr) -> Result<String, Error> {
         self.evaluate(expression).map(|value| self.stringify(value))
     }
@@ -57,6 +110,16 @@ impl Interpreter {
         statement.accept(self)
     }
 
+    ///
+    /// 执行语句块
+    ///
+    /// # 参数列表
+    /// * statements: 语句列表
+    /// * environment: 语句列表所在的环境
+    ///
+    /// # 返回值
+    /// * 执行过程是否出错
+    ///
     pub fn execute_block(
         &mut self,
         statements: &Vec<Stmt>,
@@ -290,7 +353,7 @@ impl stmt::Visitor<()> for Interpreter {
         self.environment
             .borrow_mut()
             .define(name.lexeme.clone(), Object::Number(number));
-        Ok(())        
+        Ok(())
     }
 
     fn visit_listen_stmt(&mut self, time: &Expr) -> Result<(), Error> {
@@ -313,7 +376,9 @@ impl stmt::Visitor<()> for Interpreter {
             .map(|i| self.evaluate(i))
             .unwrap_or(Ok(Object::Null))?;
 
-        self.environment.borrow_mut().define(name.lexeme.clone(), value);
+        self.environment
+            .borrow_mut()
+            .define(name.lexeme.clone(), value);
         Ok(())
     }
 

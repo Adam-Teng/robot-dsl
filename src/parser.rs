@@ -2,6 +2,9 @@ use crate::error::{parser_error, Error};
 use crate::syntax::{Expr, LiteralValue, Stmt};
 use crate::token::{Token, TokenType};
 
+///
+/// 定义 dsl 的解析器
+///
 pub struct Parser<'t> {
     pub tokens: &'t Vec<Token>,
     current: usize,
@@ -21,15 +24,46 @@ macro_rules! matches {
 }
 
 impl<'t> Parser<'t> {
+    ///
+    /// 创建一个解析器
+    ///
     pub fn new(tokens: &'t Vec<Token>) -> Self {
         Parser { tokens, current: 0 }
     }
 
-    // for test expression calculating
+    ///
+    /// 解析 dsl 语句并计算出表达式的值， 用于集成测试
+    ///
     pub fn calculate(&mut self) -> Option<Expr> {
         self.expression().ok()
     }
 
+    ///
+    /// 解析 dsl 语句
+    ///
+    /// # 返回值
+    /// * dsl 语句
+    /// * 错误
+    ///
+    /// # 使用示例
+    /// ```rust
+    /// let tokens = vec![
+    ///    Token::new(TokenType::LeftParen, "(", None, 1),
+    ///    Token::new(TokenType::Number, "1", Some(LiteralValue::Number(1.0)), 1),
+    ///    Token::new(TokenType::Plus, "+", None, 1),
+    ///     Token::new(TokenType::Number, "2", Some(LiteralValue::Number(2.0)), 1),
+    ///     Token::new(TokenType::RightParen, ")", None, 1),
+    ///     Token::new(TokenType::Semicolon, ";", None, 1),
+    /// ];
+    /// let mut parser = Parser::new(&tokens);
+    /// let stmt = parser.statement().unwrap();
+    /// assert_eq!(stmt, Stmt::Expression(Expr::Binary(
+    ///    Box::new(Expr::Literal(LiteralValue::Number(1.0))),
+    ///    Token::new(TokenType::Plus, "+", None, 1),
+    ///    Box::new(Expr::Literal(LiteralValue::Number(2.0))),
+    /// )));
+    /// ```
+    ///
     pub fn parse(&mut self) -> Result<Vec<Stmt>, Error> {
         let mut statements: Vec<Stmt> = Vec::new();
         while !self.is_at_end() {
@@ -66,7 +100,7 @@ impl<'t> Parser<'t> {
         } else if matches!(self, TokenType::Branch) {
             self.branch_statement()
         } else if matches!(self, TokenType::Loop) {
-            self.loop_statement() 
+            self.loop_statement()
         } else if matches!(self, TokenType::Exit) {
             self.exit_statement()
         } else if matches!(self, TokenType::Inputn) {

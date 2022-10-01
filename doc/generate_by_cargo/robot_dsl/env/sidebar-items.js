@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Environment","environment 类型，对 dsl 语言中的环境进行抽象"]]});

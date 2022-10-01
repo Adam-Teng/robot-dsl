@@ -1,6 +1,6 @@
+use std::fs;
 use std::io::{self, BufRead, Write};
 use std::process::exit;
-use std::fs;
 
 use robot_dsl::{error::Error, interpreter::Interpreter, parser::Parser, scanner::Scanner};
 
@@ -59,10 +59,9 @@ fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
         },
         [_] => lox.run_prompt()?,
         _ => {
-            eprintln!("Usage: lox-rs [script]");
+            eprintln!("Usage: robot-dsl [script]");
             exit(64)
         }
     }
     Ok(())
 }
-
