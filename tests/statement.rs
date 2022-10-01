@@ -131,3 +131,14 @@ fn test_interpreter_loop_exit_statement() {
     let mut interpreter = Interpreter::new();
     assert!(interpreter.interpret(&statements).is_ok());
 }
+
+#[test]
+fn test_interpreter_function_statement() {
+    let speaking: String = "step speak_one() { speak 1; } speak_one();".to_string();
+    let mut scanner = Scanner::new(speaking);
+    let tokens = scanner.scan_tokens();
+    let mut parser = Parser::new(&tokens);
+    let statements = parser.parse().unwrap();
+    let mut interpreter = Interpreter::new();
+    assert!(interpreter.interpret(&statements).is_ok());
+}

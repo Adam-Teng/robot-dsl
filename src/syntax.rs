@@ -8,6 +8,11 @@ pub enum Expr {
         name: Token,
         value: Box<Expr>,
     },
+    Call {
+        callee: Box<Expr>,
+        paren: Token,
+        arguments: Vec<Expr>,
+    },
     Binary {
         left: Box<Expr>,
         operator: Token,
@@ -54,6 +59,11 @@ impl Expr {
     pub fn accept<R>(&self, visitor: &mut dyn expr::Visitor<R>) -> Result<R, Error> {
         match self {
             Expr::Assign { name, value } => visitor.visit_assign_expr(name, value),
+            Expr::Call {
+                callee,
+                paren,
+                arguments,
+            } => visitor.visit_call_expr(callee, paren, arguments),
             Expr::Binary {
                 left,
                 operator,
@@ -83,9 +93,16 @@ pub mod expr {
         fn visit_literal_expr(&self, value: &LiteralValue) -> Result<R, Error>;
         fn visit_unary_expr(&mut self, operator: &Token, right: &Expr) -> Result<R, Error>;
         fn visit_variable_expr(&mut self, name: &Token) -> Result<R, Error>;
+        fn visit_call_expr(
+            &mut self,
+            callee: &Expr,
+            paren: &Token,
+            arguments: &Vec<Expr>,
+        ) -> Result<R, Error>;
     }
 }
 
+#[derive(Clone)]
 pub enum Stmt {
     Block {
         statements: Vec<Stmt>,
@@ -95,10 +112,15 @@ pub enum Stmt {
     },
     Branch {
         condition: Expr,
-        then: Box<Stmt>
+        then: Box<Stmt>,
     },
     Loop {
-        body: Box<Stmt>
+        body: Box<Stmt>,
+    },
+    Function {
+        name: Token,
+        params: Vec<Token>,
+        body: Vec<Stmt>,
     },
     Speak {
         expression: Expr,
@@ -122,10 +144,11 @@ impl Stmt {
         match self {
             Stmt::Block { statements } => visitor.visit_block_stmt(statements),
             Stmt::Expression { expression } => visitor.visit_expression_stmt(expression),
+            Stmt::Function { name, params, body } => visitor.visit_function_stmt(name, params, body),
             Stmt::Branch { condition, then } => visitor.visit_branch_stmt(condition, then),
             Stmt::Loop { body } => visitor.visit_loop_stmt(body),
             Stmt::Speak { expression } => visitor.visit_speak_stmt(expression),
-            Stmt::Input { input} => visitor.visit_input_stmt(input),
+            Stmt::Input { input } => visitor.visit_input_stmt(input),
             Stmt::Listen { time } => visitor.visit_listen_stmt(time),
             Stmt::Var { name, initializer } => visitor.visit_var_stmt(name, initializer),
             Stmt::Exit => visitor.visit_exit_stmt(),
@@ -141,6 +164,12 @@ pub mod stmt {
     pub trait Visitor<R> {
         fn visit_block_stmt(&mut self, statements: &Vec<Stmt>) -> Result<R, Error>;
         fn visit_expression_stmt(&mut self, expression: &Expr) -> Result<R, Error>;
+        fn visit_function_stmt(
+            &mut self,
+            name: &Token,
+            params: &Vec<Token>,
+            body: &Vec<Stmt>,
+        ) -> Result<R, Error>;
         fn visit_branch_stmt(&mut self, condition: &Expr, then: &Stmt) -> Result<R, Error>;
         fn visit_loop_stmt(&mut self, body: &Stmt) -> Result<R, Error>;
         fn visit_speak_stmt(&mut self, expression: &Expr) -> Result<R, Error>;

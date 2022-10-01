@@ -1,5 +1,6 @@
 use crate::env::Environment;
 use crate::error::Error;
+use crate::function::Function;
 use crate::object::Object;
 use crate::syntax::{expr, stmt};
 use crate::syntax::{Expr, LiteralValue, Stmt};
@@ -9,16 +10,31 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::io;
 use std::thread::sleep;
-use std::time::Duration;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 pub struct Interpreter {
+    pub globals: Rc<RefCell<Environment>>,
     environment: Rc<RefCell<Environment>>,
 }
 
 impl Interpreter {
     pub fn new() -> Self {
+        let globals = Rc::new(RefCell::new(Environment::new()));
+        let clock: Object = Object::Callable(Function::Native {
+            arity: 0,
+            body: Box::new(|_args: &Vec<Object>| {
+                Object::Number(
+                    SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .expect("Could not retrieve time.")
+                        .as_millis() as f64,
+                )
+            }),
+        });
+        globals.borrow_mut().define("clock".to_string(), clock);
         Interpreter {
-            environment: Rc::new(RefCell::new(Environment::new())),
+            globals: Rc::clone(&globals),
+            environment: Rc::clone(&globals),
         }
     }
 
@@ -41,7 +57,7 @@ impl Interpreter {
         statement.accept(self)
     }
 
-    fn execute_block(
+    pub fn execute_block(
         &mut self,
         statements: &Vec<Stmt>,
         environment: Rc<RefCell<Environment>>,
@@ -76,6 +92,7 @@ impl Interpreter {
             Object::Null => "nil".to_string(),
             Object::Number(n) => n.to_string(),
             Object::Boolean(b) => b.to_string(),
+            Object::Callable(f) => f.to_string(),
             Object::String(s) => s,
         }
     }
@@ -113,6 +130,14 @@ impl expr::Visitor<Object> for Interpreter {
                 (Object::String(left_string), Object::String(right_string)) => {
                     Ok(Object::String(left_string.clone() + &right_string))
                 }
+                // number + string
+                (Object::Number(left_number), Object::String(right_string)) => {
+                    Ok(Object::String(left_number.to_string() + &right_string))
+                }
+                (Object::String(left_string), Object::Number(right_number)) => {
+                    Ok(Object::String(left_string + &right_number.to_string()))
+                }
+                // others
                 _ => Err(Error::Runtime {
                     token: operator.clone(),
                     message: "Operands must be two numbers or two strings.".to_string(),
@@ -124,6 +149,41 @@ impl expr::Visitor<Object> for Interpreter {
         }
     }
 
+    fn visit_call_expr(
+        &mut self,
+        callee: &Expr,
+        paren: &Token,
+        arguments: &Vec<Expr>,
+    ) -> Result<Object, Error> {
+        let callee_value = self.evaluate(callee)?;
+
+        let argument_values: Result<Vec<Object>, Error> = arguments
+            .into_iter()
+            .map(|expr| self.evaluate(expr))
+            .collect();
+        let args = argument_values?;
+
+        if let Object::Callable(function) = callee_value {
+            let args_size = args.len();
+            if args_size != function.arity() {
+                Err(Error::Runtime {
+                    token: paren.clone(),
+                    message: format!(
+                        "Expected {} arguments but got {}.",
+                        function.arity(),
+                        args_size
+                    ),
+                })
+            } else {
+                function.call(self, &args)
+            }
+        } else {
+            Err(Error::Runtime {
+                token: paren.clone(),
+                message: "Can only call functions and classes.".to_string(),
+            })
+        }
+    }
 
     fn visit_literal_expr(&self, value: &LiteralValue) -> Result<Object, Error> {
         match value {
@@ -184,6 +244,24 @@ impl stmt::Visitor<()> for Interpreter {
         loop {
             self.execute(body)?;
         }
+    }
+
+    fn visit_function_stmt(
+        &mut self,
+        name: &Token,
+        params: &Vec<Token>,
+        body: &Vec<Stmt>,
+    ) -> Result<(), Error> {
+        let function = Function::User {
+            name: name.clone(),
+            params: params.clone(),
+            body: body.clone(),
+            closure: Rc::clone(&self.environment),
+        };
+        self.environment
+            .borrow_mut()
+            .define(name.lexeme.clone(), Object::Callable(function));
+        Ok(())
     }
 
     fn visit_speak_stmt(&mut self, expression: &Expr) -> Result<(), Error> {

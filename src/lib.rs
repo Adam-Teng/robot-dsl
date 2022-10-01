@@ -12,3 +12,4 @@ pub mod syntax;
 pub mod token;
 pub mod object;
 pub mod env;
+pub mod function;

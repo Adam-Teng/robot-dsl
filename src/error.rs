@@ -39,7 +39,7 @@ impl fmt::Display for Error {
 
 impl std::error::Error for Error {
     fn description(&self) -> &str {
-        "Lox Error"
+        "Error"
     }
 }
 

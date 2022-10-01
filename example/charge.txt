@@ -1,24 +1,30 @@
 var bill = 0;
 var name = "adam";
 
-step Billing();
+step Billing() {
   speak "Your balance is "+bill;
+}
 
-step Charging();
+step Charging() {
   speak "Please enter your recharge amount";
   input x;
   bill = bill + x;
+}
 
-step Complaining();
+step Complaining() {
   speak "Please enter your suggestion";
   input str;
+}
 
 speak "Hello, "+name+" is there any help?";
 loop {
-speak "Please enter 'b' to check the remain, enter 'r' to recharge the card, enter 'c' to make a complaint, enter 'e' to end the dialogue”;
-input str;
-branch (str=="b") Billing();
-branch (str=="r") Charging();
-branch (str=="c") Complaining();
-branch (str=="e") exit
+  speak "Please enter 'b' to check the remain;";
+  speak "enter 'r' to recharge;";
+  speak "enter 'c' to complain;";
+  speak "enter 'e' to quit;";
+  input str;
+  branch (str=="b") Billing();
+  branch (str=="r") Charging();
+  branch (str=="c") Complaining();
+  branch (str=="e") exit
 }

@@ -1,6 +1,5 @@
-loop {
+step test() {
   speak 1;
-  speak 2;
-  speak 3;
-  exit
 }
+
+test();

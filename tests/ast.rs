@@ -51,6 +51,15 @@ impl expr::Visitor<String> for AstPrinter {
     fn visit_assign_expr(&mut self, name: &Token, value: &Expr) -> Result<String, Error> {
         self.parenthesize(name.lexeme.clone(), vec![value])
     }
+
+    fn visit_call_expr(
+        &mut self,
+        _callee: &Expr,
+        _paren: &Token,
+        _arguments: &Vec<Expr>,
+    ) -> Result<String, Error> {
+        unimplemented!()
+    }
 }
 
 #[test]

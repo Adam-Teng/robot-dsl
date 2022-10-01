@@ -1,6 +1,9 @@
+use crate::function::Function;
+
 #[derive(Debug, Clone)]
 pub enum Object {
     Boolean(bool),
+    Callable(Function),
     Null,
     Number(f64),
     String(String),
