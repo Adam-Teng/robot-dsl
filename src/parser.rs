@@ -63,6 +63,8 @@ impl<'t> Parser<'t> {
             self.listen_statement()
         } else if matches!(self, TokenType::Branch) {
             self.branch_statement()
+        } else if matches!(self, TokenType::Loop) {
+            self.loop_statement() 
         } else if matches!(self, TokenType::LeftBrace) {
             Ok(Stmt::Block {
                 statements: self.block()?,
@@ -70,6 +72,11 @@ impl<'t> Parser<'t> {
         } else {
             self.expression_statement()
         }
+    }
+
+    fn loop_statement(&mut self) -> Result<Stmt, Error> {
+        let body = Box::new(self.statement()?);
+        Ok(Stmt::Loop { body })
     }
 
     fn branch_statement(&mut self) -> Result<Stmt, Error> {
@@ -286,6 +293,7 @@ impl<'t> Parser<'t> {
                 | TokenType::Input
                 | TokenType::Listen
                 | TokenType::Speak
+                | TokenType::Loop
                 | TokenType::Step => return,
                 _ => self.advance(),
             };

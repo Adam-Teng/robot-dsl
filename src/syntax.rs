@@ -97,6 +97,9 @@ pub enum Stmt {
         condition: Expr,
         then: Box<Stmt>
     },
+    Loop {
+        body: Box<Stmt>
+    },
     Speak {
         expression: Expr,
     },
@@ -119,6 +122,7 @@ impl Stmt {
             Stmt::Block { statements } => visitor.visit_block_stmt(statements),
             Stmt::Expression { expression } => visitor.visit_expression_stmt(expression),
             Stmt::Branch { condition, then } => visitor.visit_branch_stmt(condition, then),
+            Stmt::Loop { body } => visitor.visit_loop_stmt(body),
             Stmt::Speak { expression } => visitor.visit_speak_stmt(expression),
             Stmt::Input { input} => visitor.visit_input_stmt(input),
             Stmt::Listen { time } => visitor.visit_listen_stmt(time),
@@ -136,6 +140,7 @@ pub mod stmt {
         fn visit_block_stmt(&mut self, statements: &Vec<Stmt>) -> Result<R, Error>;
         fn visit_expression_stmt(&mut self, expression: &Expr) -> Result<R, Error>;
         fn visit_branch_stmt(&mut self, condition: &Expr, then: &Stmt) -> Result<R, Error>;
+        fn visit_loop_stmt(&mut self, body: &Stmt) -> Result<R, Error>;
         fn visit_speak_stmt(&mut self, expression: &Expr) -> Result<R, Error>;
         fn visit_input_stmt(&mut self, name: &Token) -> Result<R, Error>;
         fn visit_listen_stmt(&mut self, time: &Expr) -> Result<R, Error>;

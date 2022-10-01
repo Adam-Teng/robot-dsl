@@ -80,7 +80,7 @@ impl Interpreter {
         }
     }
 
-    /// Equivalent to checkNumberOperands
+    // Equivalent to checkNumberOperands
     fn number_operand_error<R>(&self, operator: &Token) -> Result<R, Error> {
         Err(Error::Runtime {
             token: operator.clone(),
@@ -178,6 +178,12 @@ impl stmt::Visitor<()> for Interpreter {
             self.execute(then)?;
         }
         Ok(())
+    }
+
+    fn visit_loop_stmt(&mut self, body: &Stmt) -> Result<(), Error> {
+        loop {
+            self.execute(body)?;
+        }
     }
 
     fn visit_speak_stmt(&mut self, expression: &Expr) -> Result<(), Error> {

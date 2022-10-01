@@ -36,6 +36,7 @@ pub enum TokenType {
     Speak,
     Listen,
     Branch,
+    Loop,
     Step,
     Exit,
     Input,

@@ -25,7 +25,8 @@ fn main() {
         .entry("var", "TokenType::Var")
         .entry("exit", "TokenType::Exit")
         .entry("input", "TokenType::Input")
-        .entry("Nil", "TokenType::Nil")
+        .entry("loop", "TokenType::Loop")
+        .entry("nil", "TokenType::Nil")
         .build(&mut file)
         .unwrap();
     write!(&mut file, ";\n").unwrap();
