@@ -4,13 +4,13 @@ use std::process::exit;
 
 use robot_dsl::{error::Error, interpreter::Interpreter, parser::Parser, scanner::Scanner};
 
-struct Lox {
+struct Dsl {
     interpreter: Interpreter,
 }
 
-impl Lox {
+impl Dsl {
     fn new() -> Self {
-        Lox {
+        Dsl {
             interpreter: Interpreter::new(),
         }
     }
@@ -49,15 +49,15 @@ impl Lox {
 
 fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
     let args: Vec<String> = std::env::args().collect();
-    let mut lox = Lox::new();
+    let mut dsl = Dsl::new();
     match args.as_slice() {
-        [_, file] => match lox.run_file(file) {
+        [_, file] => match dsl.run_file(file) {
             Ok(_) => (),
             Err(Error::Runtime { .. }) => exit(70),
             Err(Error::Parse) => exit(65),
             Err(Error::Io(_)) => unimplemented!(),
         },
-        [_] => lox.run_prompt()?,
+        [_] => dsl.run_prompt()?,
         _ => {
             eprintln!("Usage: robot-dsl [script]");
             exit(64)

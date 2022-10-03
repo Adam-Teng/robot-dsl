@@ -1,6 +1,7 @@
 [package]
 name = "robot-dsl"
 version = "0.1.0"
+authors = ["yhteng <yhteng@bupt.edu.cn>"]
 edition = "2021"
 build = "build.rs"
 

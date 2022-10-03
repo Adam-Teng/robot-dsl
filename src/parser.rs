@@ -32,7 +32,7 @@ impl<'t> Parser<'t> {
     }
 
     ///
-    /// 解析 dsl 语句并计算出表达式的值， 用于集成测试
+    /// 解析 dsl 语句并计算出表达式的值，用于集成测试
     ///
     pub fn calculate(&mut self) -> Option<Expr> {
         self.expression().ok()
@@ -46,7 +46,6 @@ impl<'t> Parser<'t> {
     /// * 错误
     ///
     /// # 使用示例
-    /// ```rust
     /// let tokens = vec![
     ///    Token::new(TokenType::LeftParen, "(", None, 1),
     ///    Token::new(TokenType::Number, "1", Some(LiteralValue::Number(1.0)), 1),
@@ -62,7 +61,6 @@ impl<'t> Parser<'t> {
     ///    Token::new(TokenType::Plus, "+", None, 1),
     ///    Box::new(Expr::Literal(LiteralValue::Number(2.0))),
     /// )));
-    /// ```
     ///
     pub fn parse(&mut self) -> Result<Vec<Stmt>, Error> {
         let mut statements: Vec<Stmt> = Vec::new();

@@ -5,8 +5,8 @@ extern crate phf;
 /// 对词素类型的枚举定义
 ///
 /// 分为如下四类：
-/// - 单符号token
-/// - 多符号token
+/// - 单符号 token
+/// - 多符号 token
 /// - 字面量
 /// - 关键字
 ///
@@ -78,9 +78,6 @@ impl Token {
     }
 }
 
-///
-/// 打印 token 中特定类型的词素的内容
-///
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.tpe {

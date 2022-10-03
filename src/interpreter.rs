@@ -55,7 +55,6 @@ impl Interpreter {
     /// * 执行过程是否出错
     ///
     /// # 使用示例
-    /// ```rust
     /// let mut interpreter = Interpreter::new();
     /// let mut parser = Parser::new();
     /// let mut lexer = Lexer::new();
@@ -65,7 +64,6 @@ impl Interpreter {
     /// let tokens = lexer.lex(source);
     /// let statements = parser.parse(tokens);
     /// interpreter.interpret(statements);
-    /// ```
     ///
     pub fn interpret(&mut self, statements: &Vec<Stmt>) -> Result<(), Error> {
         for statement in statements {
@@ -85,7 +83,6 @@ impl Interpreter {
     /// * 错误
     ///
     /// # 使用示例
-    /// ```rust
     /// let mut interpreter = Interpreter::new();
     /// let mut parser = Parser::new();
     /// let mut lexer = Lexer::new();
@@ -96,7 +93,6 @@ impl Interpreter {
     /// let expression = parser.parse_expression(tokens);
     /// let result = interpreter.evaluate(&expression);
     /// assert_eq!(result.unwrap(), Object::Number(7.0));
-    /// ```
     ///
     pub fn interpret_cal(&mut self, expression: &Expr) -> Result<String, Error> {
         self.evaluate(expression).map(|value| self.stringify(value))

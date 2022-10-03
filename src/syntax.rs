@@ -178,7 +178,7 @@ pub enum Stmt {
         /// 分支语句中的执行语句
         then: Box<Stmt>,
     },
-    /// 循环语句， 无限循环
+    /// 循环语句，无限循环
     Loop {
         /// 循环语句中的执行语句
         body: Box<Stmt>,
